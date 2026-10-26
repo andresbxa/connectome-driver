@@ -1,0 +1,9 @@
+# Whole-brain check (139,255 neurons, T = 4, ~4.8 h per run on an 8 GB laptop GPU).
+# Does the subgraph result hold on the complete connectome?
+
+common: [model.graph.subgraph_k=null, model.core.steps=4]
+
+runs:
+  connectome_full_T4: {model: [configs/model/connectome.yaml], seeds: [1, 2]}
+  rewired_full_T4:    {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], seeds: [1, 2]}
+  random_full_T4:     {model: [configs/model/connectome.yaml, configs/variant/random.yaml], seeds: [1, 2]}

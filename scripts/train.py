@@ -56,6 +56,9 @@ def main() -> None:
     trainer = PPO(cfg.ppo, policy, envs, device, logger)
     try:
         trainer.train(cfg.seed)
+        # Written only when training ran to the end, so interrupted runs are never mistaken
+        # for finished ones (the checkpoint below is saved in both cases).
+        (logger.dir / "DONE").write_text(f"{trainer.global_step}\n")
     finally:
         if cfg.log.checkpoint:
             print(f"checkpoint: {logger.save_checkpoint(policy)}")
