@@ -9,7 +9,7 @@ description = "The Drosophila connectome (FlyWire) as the core of a reinforcemen
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "andresbxa" },
+    { name = "Andrés Bai" },
     { name = "Joshue Calero Tamayo" },
 ]
 requires-python = ">=3.11"

@@ -73,7 +73,7 @@ FlyWire terms of use (check Codex for the current list):
 
 ## Authors
 
-- andresbxa
+- Andrés Bai ([@andresbxa](https://github.com/andresbxa))
 - Joshue Calero Tamayo
 
 To cite this repository, see `CITATION.cff`.

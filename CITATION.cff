@@ -5,7 +5,9 @@ message: >-
 title: "Connectome Driver: the Drosophila connectome as the core of a driving policy"
 type: software
 authors:
-  - alias: andresbxa
+  - given-names: Andrés
+    family-names: Bai
+    alias: andresbxa
   - given-names: Joshue
     family-names: Calero Tamayo
 version: 0.1.0
