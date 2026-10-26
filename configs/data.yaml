@@ -18,11 +18,15 @@ edges:
 
 partition:
   # Node roles by super_class. Every super_class not listed here is intrinsic.
-  afferent: [sensory, ascending]
+  # v783 has a separate `sensory_ascending` super_class (sensory neurons from the ventral
+  # nerve cord); it is afferent by both criteria. `endocrine` (80 neurons) stays intrinsic:
+  # it is efferent in the Codex `flow` column, but it drives hormones, not the body.
+  afferent: [sensory, ascending, sensory_ascending]
   efferent: [descending, motor]
 
 # Afferent neurons that receive the encoder input. Rules are AND-ed across columns,
-# OR-ed within a column.
+# OR-ed within a column. In v783 this is 11,153 compound-eye photoreceptors plus 273 ocellar
+# photoreceptors.
 visual_afferents:
   super_class: [sensory]
   class: [visual]
