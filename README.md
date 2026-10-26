@@ -52,6 +52,17 @@ python scripts/graph_stats.py                 # partition counts, degrees, path 
 
 Raw and processed files are git-ignored.
 
+### Citing FlyWire
+
+If you use this code with FlyWire data, cite the FlyWire papers as required by the
+FlyWire terms of use (check Codex for the current list):
+
+- Dorkenwald, S. et al. Neuronal wiring diagram of an adult brain. *Nature* 634, 124–138 (2024).
+- Schlegel, P. et al. Whole-brain annotation and multi-connectome cell typing of
+  *Drosophila*. *Nature* 634, 139–152 (2024).
+- Eckstein, N. et al. Neurotransmitter classification from electron microscopy images at
+  synaptic sites in *Drosophila melanogaster*. *Cell* 187, 2574–2594 (2024).
+
 ## Training
 
 The environment is `CarRacing-v3` with **discrete actions** (noop, right, left, gas, brake),
@@ -140,17 +151,6 @@ schedule and a different readout size than the MLP baseline, so it says nothing 
 core is better.
 
 ![Connectome core pipeline check](results/connectome_k3_check_curve.png)
-
-### Citing FlyWire
-
-If you use this code with FlyWire data, cite the FlyWire papers as required by the
-FlyWire terms of use (check Codex for the current list):
-
-- Dorkenwald, S. et al. Neuronal wiring diagram of an adult brain. *Nature* 634, 124–138 (2024).
-- Schlegel, P. et al. Whole-brain annotation and multi-connectome cell typing of
-  *Drosophila*. *Nature* 634, 139–152 (2024).
-- Eckstein, N. et al. Neurotransmitter classification from electron microscopy images at
-  synaptic sites in *Drosophila melanogaster*. *Cell* 187, 2574–2594 (2024).
 
 ## Related work
 
