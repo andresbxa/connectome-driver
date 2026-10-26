@@ -152,6 +152,32 @@ core is better.
 
 ![Connectome core pipeline check](results/connectome_k3_check_curve.png)
 
+## Experiment variants
+
+Same encoder, decoder, PPO and hyperparameters everywhere; only the core changes. All variants
+run on the same graph (by default the k=3 path subgraph: 13,261 neurons, 3,628 photoreceptors
+as inputs, 1,014 descending neurons as readout), so even the MLP and the ablation read
+1,014 x 8 states and have an identical decoder.
+
+| Variant | Core | Core parameters (k=3) | Command (`--model` files) |
+|---|---|---|---|
+| Connectome | message passing on the real wiring | 338,417 | `model/connectome.yaml` |
+| Rewired | same, degree-preserving rewiring | 338,417 | `model/connectome.yaml variant/rewired.yaml` |
+| Random | same, random graph with the same edge count | 338,417 | `model/connectome.yaml variant/random.yaml` |
+| Block rewired | same, rewiring within neuron groups | 338,417 | `model/connectome.yaml variant/block.yaml` |
+| MLP (matched) | two hidden layers of 40 units | 336,832 | `model/mlp_matched.yaml` |
+| No core | one linear map z -> readout shape | 527,280 | `model/nocore.yaml` |
+
+```bash
+python scripts/train.py --model configs/model/connectome.yaml --model configs/variant/rewired.yaml exp_name=rewired seed=1
+```
+
+Null graphs keep the neuron table, so the sign of every edge still follows its presynaptic
+neuron's transmitter (Dale's law). Each training seed uses its own null sample (the null
+model is sampled with the run's seed). The no-core ablation has more parameters than the
+other cores, but it is a single linear map: composed with the decoder's first layer it is
+just encoder -> decoder, which tests whether the encoder alone can drive.
+
 ## Related work
 
 - FlyGM (arXiv:2602.17997) uses the FlyWire connectome as a message-passing controller for a
