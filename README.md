@@ -110,6 +110,13 @@ FlyWire terms of use (check Codex for the current list):
 - Shiu, P. K. et al. A *Drosophila* computational brain model reveals sensorimotor
   processing. *Nature* 634, 210–219 (2024). Source of the default neurotransmitter signs.
 
+## Authors
+
+- Andrés Bai ([@andresbxa](https://github.com/andresbxa))
+- Joshue Calero Tamayo
+
+To cite this repository, see `CITATION.cff`.
+
 ## License
 
 Code: MIT (see `LICENSE`). The FlyWire data is subject to its own terms.
