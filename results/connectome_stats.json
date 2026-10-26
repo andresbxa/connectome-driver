@@ -1,0 +1,104 @@
+{
+  "num_nodes": 139255,
+  "num_edges": 3732460,
+  "total_synapses": 50666648,
+  "syn_count_per_edge": {
+    "mean": 13.574599057993924,
+    "median": 8.0,
+    "p90": 26.0,
+    "p99": 87.0,
+    "max": 2633.0
+  },
+  "roles": {
+    "afferent": 19300,
+    "intrinsic": 118540,
+    "efferent": 1415
+  },
+  "roles_minus_flygm": {
+    "afferent": 38,
+    "intrinsic": 44,
+    "efferent": -73
+  },
+  "visual_afferents": 11426,
+  "readout_neurons": 1305,
+  "nt_type_counts": {
+    "ACH": 94182,
+    "GLUT": 22726,
+    "GABA": 18389,
+    "<NA>": 1626,
+    "SER": 1435,
+    "DA": 791,
+    "OCT": 106
+  },
+  "signs": {
+    "inhibitory_neuron_fraction": 0.29524972173351044,
+    "inhibitory_edge_fraction": 0.37674268444939796,
+    "inhibitory_synapse_fraction": 0.3854626420125523
+  },
+  "degrees": {
+    "in_degree": {
+      "mean": 26.803059136117195,
+      "median": 14.0,
+      "p90": 59.0,
+      "p99": 214.0,
+      "max": 6261.0
+    },
+    "out_degree": {
+      "mean": 26.803059136117195,
+      "median": 17.0,
+      "p90": 54.0,
+      "p99": 170.0,
+      "max": 6523.0
+    },
+    "isolated_nodes": 671,
+    "no_inputs": 9072,
+    "no_outputs": 1737
+  },
+  "visual_to_readout": {
+    "targets": 1305,
+    "hop_histogram": {
+      "1": 2,
+      "2": 153,
+      "3": 859,
+      "4": 269,
+      "5": 4
+    },
+    "reachable_fraction": {
+      "2": 0.11877394636015326,
+      "3": 0.7770114942528735,
+      "4": 0.9831417624521073,
+      "8": 0.9862068965517241,
+      "12": 0.9862068965517241
+    }
+  },
+  "path_subgraphs": [
+    {
+      "k": 3,
+      "nodes": 13261,
+      "edges": 107764,
+      "sources_kept": 3628,
+      "targets_kept": 1014
+    },
+    {
+      "k": 4,
+      "nodes": 73043,
+      "edges": 1651550,
+      "sources_kept": 9627,
+      "targets_kept": 1283
+    },
+    {
+      "k": 5,
+      "nodes": 113624,
+      "edges": 3146679,
+      "sources_kept": 9654,
+      "targets_kept": 1287
+    },
+    {
+      "k": 6,
+      "nodes": 129333,
+      "edges": 3593939,
+      "sources_kept": 9655,
+      "targets_kept": 1287
+    }
+  ]
+}
