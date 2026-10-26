@@ -47,6 +47,7 @@ def test_gae_matches_reference():
 def small_cfg(tmp_path, **overrides):
     cfg = load_config(TRAIN_CONFIG)
     cfg.run_dir = str(tmp_path)
+    cfg.model.readout_neurons = 1305  # no graph in these tests
     return OmegaConf.merge(cfg, OmegaConf.create(overrides))
 
 

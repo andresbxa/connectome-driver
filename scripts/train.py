@@ -12,8 +12,9 @@ import argparse
 import torch
 from omegaconf import OmegaConf
 
+from connectome_driver.data.graphs import build_graph
 from connectome_driver.envs.car_racing import make_vector_env, observation_shape
-from connectome_driver.models.policy import build_policy
+from connectome_driver.models.policy import build_policy, needs_graph
 from connectome_driver.rl.ppo import PPO
 from connectome_driver.utils.config import load_config
 from connectome_driver.utils.logging import RunLogger
@@ -34,12 +35,18 @@ def main() -> None:
 
     seed_everything(cfg.seed)
     device = torch.device(cfg.device if torch.cuda.is_available() else "cpu")
+    graph = build_graph(cfg.model.graph) if needs_graph(cfg.model) else None
     envs = make_vector_env(cfg.env, cfg.ppo.num_envs)
-    policy = build_policy(cfg.model, observation_shape(cfg.env), envs.single_action_space.n).to(device)
+    policy = build_policy(cfg.model, observation_shape(cfg.env), envs.single_action_space.n, graph)
+    policy = policy.to(device)
 
     logger = RunLogger(cfg)
     counts = policy.parameter_counts()
     print(f"run dir: {logger.dir}\nparameters: {counts} total {sum(counts.values()):,}")
+    if graph is not None:
+        g = graph.graph
+        print(f"graph: {g.num_nodes:,} neurons, {g.num_edges:,} edges, "
+              f"{len(graph.input_index):,} inputs, {len(graph.readout_index):,} readouts")
     for name, n in counts.items():
         logger.tb.add_scalar(f"params/{name}", n, 0)
 

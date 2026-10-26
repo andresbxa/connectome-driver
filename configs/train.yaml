@@ -18,6 +18,7 @@ ppo:
   num_envs: 8
   rollout_steps: 128        # per env -> batch of 1024 transitions
   num_minibatches: 4
+  micro_batch_size: null    # split each minibatch to save GPU memory; the update is unchanged
   update_epochs: 4
   learning_rate: 2.5e-4
   anneal_lr: true
@@ -36,10 +37,14 @@ model:
     type: cnn
     channels: [16, 32, 32]
     feature_dim: 64
-  # The decoder reads `readout_neurons` x `node_dim` states. For the connectome variants
-  # these are the descending neurons of the graph in use; every variant must use the same
-  # numbers so the decoder is identical.
-  readout_neurons: 1305
+  # Graph shared by the experiment. Graph cores run on it; every variant (also the MLP) takes
+  # its number of readout neurons from it, so the decoder is identical across variants.
+  graph:
+    processed_dir: data/processed
+    subgraph_k: 3           # path subgraph visual afferents -> descending; null = whole brain
+    variant: connectome     # Phase 4: null models
+  # The decoder reads `readout_neurons` x `node_dim` states (the descending neurons).
+  readout_neurons: auto
   node_dim: 8
   decoder:
     hidden_dim: 256
