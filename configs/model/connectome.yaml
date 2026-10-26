@@ -1,0 +1,7 @@
+# Graph core on the real connectome.
+core:
+  type: graph
+  steps: 8              # message-passing steps T per environment step
+  signed: true          # edge sign from the presynaptic neuron's transmitter
+  dtype: float32        # float32 | bfloat16 | float16 (sparse product and node states)
+  checkpoint: false     # recompute each step in backward to save memory
