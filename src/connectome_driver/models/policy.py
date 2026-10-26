@@ -9,6 +9,7 @@ from omegaconf import DictConfig
 from torch import nn
 from torch.distributions import Categorical
 
+from connectome_driver.data.graphs import GraphSpec
 from connectome_driver.models.cores import build_core
 from connectome_driver.models.decoder import Decoder
 from connectome_driver.models.encoder import CNNEncoder, FlatEncoder
@@ -41,7 +42,18 @@ class ActorCritic(nn.Module):
         }
 
 
-def build_policy(cfg: DictConfig, obs_shape: Sequence[int], num_actions: int) -> ActorCritic:
+def needs_graph(cfg: DictConfig) -> bool:
+    return cfg.core.type == "graph" or cfg.readout_neurons == "auto"
+
+
+def build_policy(
+    cfg: DictConfig, obs_shape: Sequence[int], num_actions: int, graph: GraphSpec | None = None
+) -> ActorCritic:
+    """Encoder + core + decoder from the ``model`` config section.
+
+    ``readout_neurons: auto`` takes the number of readout neurons from the graph, also for
+    non-graph cores, so every variant of an experiment has exactly the same decoder.
+    """
     enc_cfg = cfg.encoder
     if enc_cfg.type == "cnn":
         encoder = CNNEncoder(obs_shape, enc_cfg.channels, enc_cfg.feature_dim)
@@ -49,6 +61,15 @@ def build_policy(cfg: DictConfig, obs_shape: Sequence[int], num_actions: int) ->
         encoder = FlatEncoder(obs_shape[0], enc_cfg.feature_dim)
     else:
         raise ValueError(f"unknown encoder type {enc_cfg.type!r}")
-    core = build_core(cfg.core, encoder.feature_dim, cfg.readout_neurons, cfg.node_dim)
-    decoder = Decoder(cfg.readout_neurons, cfg.node_dim, cfg.decoder.hidden_dim, num_actions)
+
+    readout = cfg.readout_neurons
+    if readout == "auto":
+        if graph is None:
+            raise ValueError("readout_neurons: auto needs a graph")
+        readout = len(graph.readout_index)
+    elif graph is not None and readout != len(graph.readout_index):
+        raise ValueError(f"readout_neurons={readout} but the graph has {len(graph.readout_index)}")
+
+    core = build_core(cfg.core, encoder.feature_dim, readout, cfg.node_dim, graph)
+    decoder = Decoder(readout, cfg.node_dim, cfg.decoder.hidden_dim, num_actions)
     return ActorCritic(encoder, core, decoder)

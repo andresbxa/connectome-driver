@@ -132,6 +132,23 @@ class PPO:
         for i in np.flatnonzero(mask):
             self.logger.log_episode(self.global_step, float(ep["r"][i]), int(ep["l"][i]))
 
+    def _loss_terms(self, obs, actions, old_logprobs, old_values, returns, adv) -> list[torch.Tensor]:
+        """Per-sample sums of policy loss, value loss, entropy, approx. KL and clip fraction."""
+        cfg = self.cfg
+        _, logprob, entropy, value = self.policy.act(obs, actions)
+        log_ratio = logprob - old_logprobs
+        ratio = log_ratio.exp()
+        with torch.no_grad():
+            approx_kl = ((ratio - 1) - log_ratio).sum()
+            clipfrac = ((ratio - 1.0).abs() > cfg.clip_coef).float().sum()
+        pg = torch.max(-adv * ratio, -adv * ratio.clamp(1 - cfg.clip_coef, 1 + cfg.clip_coef)).sum()
+        if cfg.clip_value_loss:
+            v_clipped = old_values + (value - old_values).clamp(-cfg.clip_coef, cfg.clip_coef)
+            v = 0.5 * torch.max((value - returns) ** 2, (v_clipped - returns) ** 2).sum()
+        else:
+            v = 0.5 * ((value - returns) ** 2).sum()
+        return [pg, v, entropy.sum(), approx_kl, clipfrac]
+
     def update(self, advantages: torch.Tensor, returns: torch.Tensor) -> dict:
         b, cfg = self.buffer, self.cfg
         obs = b.obs.flatten(0, 1)
@@ -139,38 +156,33 @@ class PPO:
         adv, ret, old_values = advantages.flatten(), returns.flatten(), b.values.flatten()
 
         stats: dict[str, list[float]] = {k: [] for k in ("policy_loss", "value_loss", "entropy", "approx_kl", "clipfrac")}
+        micro = cfg.micro_batch_size or self.minibatch_size
         for _ in range(cfg.update_epochs):
             perm = torch.randperm(self.batch_size, device=self.device)
             for start in range(0, self.batch_size, self.minibatch_size):
                 idx = perm[start : start + self.minibatch_size]
-                _, logprob, entropy, value = self.policy.act(obs[idx], actions[idx])
-                log_ratio = logprob - old_logprobs[idx]
-                ratio = log_ratio.exp()
-                with torch.no_grad():
-                    approx_kl = ((ratio - 1) - log_ratio).mean()
-                    clipfrac = ((ratio - 1.0).abs() > cfg.clip_coef).float().mean()
-
+                # Advantages are normalized over the whole minibatch, then the minibatch is
+                # processed in micro-batches whose gradients add up to exactly the minibatch
+                # gradient: same update as without micro-batching, with less GPU memory.
                 mb_adv = adv[idx]
                 mb_adv = (mb_adv - mb_adv.mean()) / (mb_adv.std() + 1e-8)
-                pg_loss = torch.max(
-                    -mb_adv * ratio, -mb_adv * ratio.clamp(1 - cfg.clip_coef, 1 + cfg.clip_coef)
-                ).mean()
-
-                if cfg.clip_value_loss:
-                    v_clipped = old_values[idx] + (value - old_values[idx]).clamp(-cfg.clip_coef, cfg.clip_coef)
-                    v_loss = 0.5 * torch.max((value - ret[idx]) ** 2, (v_clipped - ret[idx]) ** 2).mean()
-                else:
-                    v_loss = 0.5 * ((value - ret[idx]) ** 2).mean()
-
-                entropy = entropy.mean()
-                loss = pg_loss - cfg.ent_coef * entropy + cfg.vf_coef * v_loss
                 self.optimizer.zero_grad(set_to_none=True)
-                loss.backward()
+                totals = torch.zeros(5, device=self.device)
+                for m0 in range(0, len(idx), micro):
+                    terms = self._loss_terms(
+                        obs[idx[m0 : m0 + micro]], actions[idx[m0 : m0 + micro]],
+                        old_logprobs[idx[m0 : m0 + micro]], old_values[idx[m0 : m0 + micro]],
+                        ret[idx[m0 : m0 + micro]], mb_adv[m0 : m0 + micro],
+                    )
+                    pg_sum, v_sum, ent_sum = terms[0], terms[1], terms[2]
+                    loss = (pg_sum - cfg.ent_coef * ent_sum + cfg.vf_coef * v_sum) / len(idx)
+                    loss.backward()
+                    totals += torch.stack([t.detach() for t in terms])
                 nn.utils.clip_grad_norm_(self.policy.parameters(), cfg.max_grad_norm)
                 self.optimizer.step()
 
-                for k, v in zip(stats, (pg_loss, v_loss, entropy, approx_kl, clipfrac)):
-                    stats[k].append(v.item())
+                for k, v in zip(stats, (totals / len(idx)).tolist()):
+                    stats[k].append(v)
             if cfg.target_kl is not None and np.mean(stats["approx_kl"][-cfg.num_minibatches:]) > cfg.target_kl:
                 break
 

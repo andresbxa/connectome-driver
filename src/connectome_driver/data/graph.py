@@ -158,18 +158,28 @@ def edge_weights(
     dst: np.ndarray,
     num_nodes: int,
     node_sign: np.ndarray | None = None,
-    normalize: bool = True,
+    normalize: str | None = "l2",
 ) -> np.ndarray:
     """Weight of each edge: ``log(1 + syn_count)``, optionally signed and normalized.
 
-    With ``normalize`` the absolute incoming weights of every node sum to 1, which keeps the
-    scale of node states stable across message-passing steps. The sign comes from the
-    presynaptic neuron (``node_sign[src]``) so all outgoing edges of a neuron share it.
+    Normalization is per postsynaptic neuron, over its incoming weights:
+
+    - ``"l2"``: squared weights sum to 1. For independent inputs of equal variance the summed
+      input keeps that variance, so a signal neither explodes nor fades from hop to hop.
+    - ``"l1"``: weights sum to 1, i.e. a weighted *average* of the inputs. A signal carried by
+      a few of many inputs is diluted at every hop (about 10x per hop in the connectome).
+    - ``None``: raw log synapse counts.
+
+    The sign comes from the presynaptic neuron (``node_sign[src]``) so all outgoing edges of a
+    neuron share it.
     """
     w = np.log1p(syn_count.astype(np.float64))
-    if normalize:
-        in_total = np.bincount(dst, weights=w, minlength=num_nodes)
-        w = w / in_total[dst]
+    if normalize == "l1":
+        w = w / np.bincount(dst, weights=w, minlength=num_nodes)[dst]
+    elif normalize == "l2":
+        w = w / np.sqrt(np.bincount(dst, weights=w**2, minlength=num_nodes))[dst]
+    elif normalize is not None:
+        raise ValueError(f"unknown normalization {normalize!r}")
     if node_sign is not None:
         w = w * node_sign[src]
     return w.astype(np.float32)

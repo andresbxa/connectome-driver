@@ -17,8 +17,9 @@ import numpy as np
 import torch
 from omegaconf import OmegaConf
 
+from connectome_driver.data.graphs import build_graph
 from connectome_driver.envs.car_racing import make_env, observation_shape
-from connectome_driver.models.policy import build_policy
+from connectome_driver.models.policy import build_policy, needs_graph
 
 EVAL_SEED_OFFSET = 10_000
 
@@ -33,7 +34,8 @@ def main() -> None:
     cfg = OmegaConf.load(args.run_dir / "config.yaml")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     env = make_env(cfg.env)
-    policy = build_policy(cfg.model, observation_shape(cfg.env), env.action_space.n).to(device)
+    graph = build_graph(cfg.model.graph) if needs_graph(cfg.model) else None
+    policy = build_policy(cfg.model, observation_shape(cfg.env), env.action_space.n, graph).to(device)
     policy.load_state_dict(torch.load(args.run_dir / "policy.pt", map_location=device))
     policy.eval()
 

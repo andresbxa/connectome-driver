@@ -70,12 +70,17 @@ def test_weights_are_log_scaled_normalized_and_follow_dale():
     syn = np.array([5, 10, 20, 7])
     sign = np.array([1, -1, 1, 1], dtype=np.int8)
 
-    raw = edge_weights(syn, src, dst, 4, normalize=False)
+    raw = edge_weights(syn, src, dst, 4, normalize=None)
     np.testing.assert_allclose(raw, np.log1p(syn), rtol=1e-6)
 
-    w = edge_weights(syn, src, dst, 4, node_sign=sign, normalize=True)
+    w = edge_weights(syn, src, dst, 4, node_sign=sign, normalize="l1")
     in_abs = np.bincount(dst, weights=np.abs(w), minlength=4)
     np.testing.assert_allclose(in_abs[[1, 3]], 1.0, rtol=1e-6)
+    np.testing.assert_array_equal(np.sign(w), sign[src])
+
+    w = edge_weights(syn, src, dst, 4, node_sign=sign, normalize="l2")
+    in_sq = np.bincount(dst, weights=w.astype(np.float64) ** 2, minlength=4)
+    np.testing.assert_allclose(in_sq[[1, 3]], 1.0, rtol=1e-6)
     np.testing.assert_array_equal(np.sign(w), sign[src])
 
 

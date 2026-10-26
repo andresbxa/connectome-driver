@@ -1,0 +1,9 @@
+# Graph core on the real connectome.
+core:
+  type: graph
+  steps: 8              # message-passing steps T per environment step (T steps = T hops)
+  signed: true          # edge sign from the presynaptic neuron's transmitter
+  normalize: l2         # l2 keeps signal variance across hops; l1 (averaging) dilutes it ~10x/hop
+  leak_init: 0.9        # initial fraction of the state replaced per step (learnable)
+  dtype: bfloat16       # float32 | bfloat16 | float16 (sparse product and node states)
+  checkpoint: false     # recompute each step in backward; slower than micro-batching here
