@@ -1,0 +1,6 @@
+# MLP core with about as many parameters as the graph core on the experiment's graph
+# (two equal hidden layers, width solved from the graph core's parameter count).
+core:
+  type: mlp
+  hidden_dims: match_graph
+  depth: 2

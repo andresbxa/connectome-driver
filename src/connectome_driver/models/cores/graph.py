@@ -54,6 +54,17 @@ def sparse_matmul(a: torch.Tensor, a_t: torch.Tensor, x: torch.Tensor) -> torch.
     return SparseMatmul.apply(a, a_t, x)
 
 
+def graph_core_param_count(num_nodes: int, num_inputs: int, feature_dim: int, node_dim: int) -> int:
+    """Learnable parameters of a ``GraphCore``; it does not depend on T or on the edges."""
+    return (
+        num_inputs * feature_dim  # input_proj
+        + node_dim  # input_lift
+        + 2 * node_dim * node_dim  # w_msg, w_self
+        + num_nodes * node_dim  # bias
+        + 1  # leak
+    )
+
+
 class GraphCore(nn.Module):
     def __init__(
         self,
