@@ -1,0 +1,52 @@
+# Training configuration shared by every variant. Only the `model.core` section changes
+# between variants (see configs/model/).
+
+exp_name: baseline
+seed: 1
+device: cuda
+run_dir: runs
+
+env:
+  frame_skip: 4
+  frame_stack: 4
+  resolution: 84
+  reward_clip: 1.0          # training reward only; reported returns are unclipped
+  lap_complete_percent: 0.95
+
+ppo:
+  total_steps: 1_000_000    # agent steps summed over envs (x frame_skip = env frames)
+  num_envs: 8
+  rollout_steps: 128        # per env -> batch of 1024 transitions
+  num_minibatches: 4
+  update_epochs: 4
+  learning_rate: 2.5e-4
+  anneal_lr: true
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_coef: 0.1
+  clip_value_loss: true
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  target_kl: null
+
+model:
+  # Encoder: pixels -> z, kept small so the core has to do the work.
+  encoder:
+    type: cnn
+    channels: [16, 32, 32]
+    feature_dim: 64
+  # The decoder reads `readout_neurons` x `node_dim` states. For the connectome variants
+  # these are the descending neurons of the graph in use; every variant must use the same
+  # numbers so the decoder is identical.
+  readout_neurons: 1305
+  node_dim: 8
+  decoder:
+    hidden_dim: 256
+  core:
+    type: mlp
+    hidden_dims: [256, 256]
+
+log:
+  episode_csv: true
+  checkpoint: true
