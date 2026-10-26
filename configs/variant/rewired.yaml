@@ -1,0 +1,4 @@
+# Null model: degree-preserving rewiring (double edge swap): same in/out degree per neuron.
+# Use on top of a graph core: --model configs/model/connectome.yaml --model configs/variant/rewired.yaml
+graph:
+  variant: rewired

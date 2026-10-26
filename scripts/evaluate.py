@@ -34,7 +34,8 @@ def main() -> None:
     cfg = OmegaConf.load(args.run_dir / "config.yaml")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     env = make_env(cfg.env)
-    graph = build_graph(cfg.model.graph) if needs_graph(cfg.model) else None
+    # Rebuilds the same graph as in training (null models are sampled with the run's seed).
+    graph = build_graph(cfg.model.graph, seed=cfg.seed) if needs_graph(cfg.model) else None
     policy = build_policy(cfg.model, observation_shape(cfg.env), env.action_space.n, graph).to(device)
     policy.load_state_dict(torch.load(args.run_dir / "policy.pt", map_location=device))
     policy.eval()

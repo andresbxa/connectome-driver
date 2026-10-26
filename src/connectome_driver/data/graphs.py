@@ -10,6 +10,8 @@ from omegaconf import DictConfig
 from connectome_driver.data.graph import Connectome, load_connectome
 from connectome_driver.data.subgraph import induced_subgraph, path_subgraph_mask
 
+VARIANTS = ("connectome", "rewired", "random", "block")
+
 
 @dataclass
 class GraphSpec:
@@ -18,11 +20,13 @@ class GraphSpec:
     readout_index: np.ndarray  # descending neurons: what the decoder reads
 
 
-def build_graph(cfg: DictConfig) -> GraphSpec:
+def build_graph(cfg: DictConfig, seed: int = 0) -> GraphSpec:
     """Load the processed connectome, optionally restrict it, and apply the graph variant.
 
     The subgraph is cut from the real connectome *before* any null model is applied, so every
-    variant has exactly the same neurons, inputs and readouts; only the edges differ.
+    variant has exactly the same neurons, inputs and readouts; only the edges differ. Null
+    models are sampled with ``cfg.variant_seed`` if set, otherwise with ``seed`` (the run's
+    seed), so each training seed sees its own sample of the null ensemble.
     """
     graph = load_connectome(cfg.processed_dir)
     if cfg.subgraph_k is not None:
@@ -34,9 +38,26 @@ def build_graph(cfg: DictConfig) -> GraphSpec:
             cfg.subgraph_k,
         )
         graph = induced_subgraph(graph, mask)
-    if cfg.variant != "connectome":
-        raise ValueError(f"graph variant {cfg.variant!r} is not implemented yet (Phase 4)")
-    return spec_from_graph(graph)
+    variant_seed = cfg.get("variant_seed") if cfg.get("variant_seed") is not None else seed
+    return spec_from_graph(apply_variant(graph, cfg.variant, variant_seed, cfg))
+
+
+def apply_variant(graph: Connectome, variant: str, seed: int, cfg: DictConfig) -> Connectome:
+    if variant == "connectome":
+        return graph
+    if variant not in VARIANTS:
+        raise ValueError(f"unknown graph variant {variant!r}; expected one of {VARIANTS}")
+    try:
+        from connectome_driver.data import nulls
+    except ImportError as err:  # implemented in a separate task (docs/tasks/null-models.md)
+        raise NotImplementedError(f"graph variant {variant!r} needs data/nulls.py") from err
+    swaps = cfg.get("swaps_per_edge", 10.0)
+    if variant == "rewired":
+        return nulls.rewire_degree_preserving(graph, seed=seed, swaps_per_edge=swaps)
+    if variant == "random":
+        return nulls.random_graph(graph, seed=seed)
+    blocks = nulls.neuron_blocks(graph, by=cfg.get("blocks", "super_class"))
+    return nulls.rewire_within_blocks(graph, blocks, seed=seed, swaps_per_edge=swaps)
 
 
 def spec_from_graph(graph: Connectome) -> GraphSpec:
