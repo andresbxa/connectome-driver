@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import warnings
 from pathlib import Path
 
 import matplotlib
@@ -75,7 +76,9 @@ def main() -> None:
         used.append(color)
         n = len(curves)
         label = f"{exp.name} ({n} seed{'s' if n > 1 else ''})"
-        mean = np.nanmean(curves, axis=0)
+        with warnings.catch_warnings():  # bins past the end of a shorter run are all-NaN
+            warnings.simplefilter("ignore", RuntimeWarning)
+            mean = np.nanmean(curves, axis=0)
         ax.plot(centers, mean, color=color, linewidth=2, label=label)
         if n > 1:
             ax.fill_between(centers, np.nanmin(curves, 0), np.nanmax(curves, 0), color=color, alpha=0.15, linewidth=0)
