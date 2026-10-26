@@ -1,0 +1,4 @@
+# Null model: random graph: same neurons and number of edges, uniformly random wiring.
+# Use on top of a graph core: --model configs/model/connectome.yaml --model configs/variant/random.yaml
+graph:
+  variant: random

@@ -80,6 +80,15 @@ enough".
 Hint: run (1) independently inside each block pair, or sort edges by block pair and only pair
 edges within the same group.
 
+### Where it plugs in (already done)
+
+`src/connectome_driver/data/graphs.py` (`apply_variant`) already calls these four functions
+with exactly the signatures above, and `configs/variant/{rewired,random,block}.yaml` select
+them. As soon as `connectome_driver/data/nulls.py` exists, training works with
+`--model configs/model/connectome.yaml --model configs/variant/rewired.yaml`, and the
+integration tests in `tests/test_controls.py` stop being skipped. If you need to change a
+signature, change `apply_variant` in the same PR.
+
 ## Tests (`tests/test_nulls.py`)
 
 They must pass on the toy brain in `tests/conftest.py` and on random graphs of a few thousand

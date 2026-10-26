@@ -42,7 +42,10 @@ model:
   graph:
     processed_dir: data/processed
     subgraph_k: 3           # path subgraph visual afferents -> descending; null = whole brain
-    variant: connectome     # Phase 4: null models
+    variant: connectome     # connectome | rewired | random | block (null models)
+    variant_seed: null      # null-model sample; null = use the run's seed
+    swaps_per_edge: 10      # rewired / block: accepted double edge swaps per edge
+    blocks: super_class     # block: neuron grouping (super_class | neuropil)
   # The decoder reads `readout_neurons` x `node_dim` states (the descending neurons).
   readout_neurons: auto
   node_dim: 8

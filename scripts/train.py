@@ -1,8 +1,11 @@
 """Train a PPO policy on CarRacing.
 
 Usage:
-    python scripts/train.py [--model configs/model/mlp.yaml] [key=value ...]
-    python scripts/train.py exp_name=mlp_baseline seed=2 ppo.total_steps=2_000_000
+    python scripts/train.py [--model configs/model/<core>.yaml ...] [key=value ...]
+    python scripts/train.py --model configs/model/mlp.yaml exp_name=mlp_baseline seed=2
+    python scripts/train.py --model configs/model/connectome.yaml --model configs/variant/rewired.yaml
+
+Each ``--model`` file is merged into the ``model`` section, in order.
 """
 
 from __future__ import annotations
@@ -24,18 +27,18 @@ from connectome_driver.utils.seeding import seed_everything
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="configs/train.yaml")
-    parser.add_argument("--model", default=None, help="YAML merged into the `model` section")
+    parser.add_argument("--model", action="append", default=[], help="YAML merged into `model`")
     parser.add_argument("overrides", nargs="*")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
-    if args.model:
-        cfg.model = OmegaConf.merge(cfg.model, OmegaConf.load(args.model))
+    for path in args.model:
+        cfg.model = OmegaConf.merge(cfg.model, OmegaConf.load(path))
     cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(args.overrides))
 
     seed_everything(cfg.seed)
     device = torch.device(cfg.device if torch.cuda.is_available() else "cpu")
-    graph = build_graph(cfg.model.graph) if needs_graph(cfg.model) else None
+    graph = build_graph(cfg.model.graph, seed=cfg.seed) if needs_graph(cfg.model) else None
     envs = make_vector_env(cfg.env, cfg.ppo.num_envs)
     policy = build_policy(cfg.model, observation_shape(cfg.env), envs.single_action_space.n, graph)
     policy = policy.to(device)

@@ -1,0 +1,4 @@
+# Ablation without a core: the encoder features go to the decoder through one linear map
+# (needed only to keep the decoder's input shape).
+core:
+  type: none
