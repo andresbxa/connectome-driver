@@ -10,7 +10,8 @@ dynamics
 
 and returns the states of the readout (descending) neurons. ``A`` is the fixed sparse
 adjacency (rows = postsynaptic): weights log(1 + synapses), normalized per postsynaptic neuron
-and optionally signed by the presynaptic neuron's transmitter. All learnable parameters are
+(by default to unit L2 norm, which preserves signal variance across hops; see
+``edge_weights``) and optionally signed by the presynaptic neuron's transmitter. All learnable parameters are
 shared across neurons except the per-neuron bias ``b_i`` and the per-afferent input weights,
 so the computation is shaped by the wiring, not by a neuron-specific network.
 
@@ -67,6 +68,8 @@ class GraphCore(nn.Module):
         node_dim: int,
         steps: int,
         signed: bool = True,
+        normalize: str | None = "l2",
+        leak_init: float = 0.9,
         dtype: str = "float32",
         checkpoint_steps: bool = False,
     ):
@@ -75,7 +78,7 @@ class GraphCore(nn.Module):
         self.compute_dtype = getattr(torch, dtype)
         self.checkpoint_steps = checkpoint_steps
 
-        weight = edge_weights(syn_count, src, dst, num_nodes, node_sign if signed else None)
+        weight = edge_weights(syn_count, src, dst, num_nodes, node_sign if signed else None, normalize)
         a, a_t = to_torch_csr(src, dst, weight, num_nodes)
         # Sparse matrices are plain attributes, moved by `_apply` below (buffers cannot be CSR
         # tensors in every PyTorch version).
@@ -93,7 +96,8 @@ class GraphCore(nn.Module):
         nn.init.orthogonal_(self.w_msg)
         nn.init.orthogonal_(self.w_self, gain=0.5)
         self.bias = nn.Parameter(torch.zeros(num_nodes, node_dim))
-        self.leak = nn.Parameter(torch.zeros(()))  # a = sigmoid(0) = 0.5
+        # a = sigmoid(leak): fraction of the state replaced at each step (1 = no memory).
+        self.leak = nn.Parameter(torch.tensor(math.log(leak_init / (1 - leak_init))))
 
     def _apply(self, fn, recurse=True):
         super()._apply(fn, recurse)

@@ -38,6 +38,8 @@ def build_core(
             node_dim=node_dim,
             steps=cfg.steps,
             signed=cfg.signed,
+            normalize=cfg.get("normalize", "l2"),
+            leak_init=cfg.get("leak_init", 0.9),
             dtype=cfg.dtype,
             checkpoint_steps=cfg.checkpoint,
         )
