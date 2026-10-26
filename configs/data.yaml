@@ -1,0 +1,60 @@
+# Connectome preprocessing (FlyWire Codex, materialization 783).
+# Paths are relative to the repository root.
+
+raw_dir: data/raw
+processed_dir: data/processed
+
+files:
+  connections: connections_princeton.csv.gz  # "Connections (Filtered)" on Codex
+  classification: classification.csv.gz
+  neurons: neurons.csv.gz
+
+edges:
+  # Synapse threshold applied to the total count of a (pre, post) pair, summed over neuropils.
+  min_syn_count: 5
+  # Autapses are dropped so the real graph and the null models (which forbid self-loops)
+  # live in the same space of graphs.
+  drop_autapses: true
+
+partition:
+  # Node roles by super_class. Every super_class not listed here is intrinsic.
+  # v783 has a separate `sensory_ascending` super_class (sensory neurons from the ventral
+  # nerve cord); it is afferent by both criteria. `endocrine` (80 neurons) stays intrinsic:
+  # it is efferent in the Codex `flow` column, but it drives hormones, not the body.
+  afferent: [sensory, ascending, sensory_ascending]
+  efferent: [descending, motor]
+
+# Afferent neurons that receive the encoder input. Rules are AND-ed across columns,
+# OR-ed within a column. In v783 this is 11,153 compound-eye photoreceptors plus 273 ocellar
+# photoreceptors.
+visual_afferents:
+  super_class: [sensory]
+  class: [visual]
+
+# Efferent neurons whose states are read by the decoder.
+readout:
+  super_class: [descending]
+
+# Sign of every outgoing edge, set by the predicted neurotransmitter of the presynaptic
+# neuron (Dale's law). Defaults follow Shiu et al. (2024): ACh excitatory, GABA and Glu
+# inhibitory. Aminergic transmitters are modulatory; they default to +1.
+signs:
+  ach: 1
+  gaba: -1
+  glut: -1
+  da: 1
+  ser: 1
+  oct: 1
+  unknown: 1
+
+# Fast-iteration subgraph: neurons on a visual-afferent -> readout path of at most k hops.
+# The brain is shallow (every reachable descending neuron is <= 5 hops from a photoreceptor),
+# so k grows the subgraph quickly: k=3 keeps ~13k neurons, k=4 already ~73k.
+subgraph:
+  k: 3
+
+stats:
+  # Hop budgets used to report reachability from visual afferents to the readout neurons.
+  hop_budgets: [2, 3, 4, 8, 12]
+  # Path lengths k explored for the visual-afferent -> readout subgraph.
+  subgraph_k: [3, 4, 5, 6]
