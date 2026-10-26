@@ -21,7 +21,7 @@ class RunLogger:
         self.dir.mkdir(parents=True, exist_ok=True)
         OmegaConf.save(cfg, self.dir / "config.yaml")
         self.tb = SummaryWriter(str(self.dir))
-        self._episodes = open(self.dir / "episodes.csv", "w", newline="")
+        self._episodes = open(self.dir / "episodes.csv", "w", newline="")  # noqa: SIM115 (kept open for the run)
         self._ep_writer = csv.writer(self._episodes)
         self._ep_writer.writerow(["step", "return", "length_frames", "wall_time"])
         self._iterations = None
@@ -40,7 +40,7 @@ class RunLogger:
         for k, v in stats.items():
             self.tb.add_scalar(f"train/{k}", v, step)
         if self._iterations is None:
-            self._iterations = open(self.dir / "iterations.csv", "w", newline="")
+            self._iterations = open(self.dir / "iterations.csv", "w", newline="")  # noqa: SIM115
             self._it_writer = csv.DictWriter(self._iterations, ["step", *stats])
             self._it_writer.writeheader()
         self._it_writer.writerow({"step": step, **{k: f"{v:.6g}" for k, v in stats.items()}})
