@@ -18,7 +18,8 @@ dependencies = [
     "pandas>=2.1",
     "pyarrow>=14",
     "omegaconf>=2.3",
-    "gymnasium[box2d]>=1.0",
+    "gymnasium[box2d]>=1.1",
+    "opencv-python-headless>=4.8",  # used by gymnasium's ResizeObservation
     "tensorboard>=2.15",
     "matplotlib>=3.8",
     "tqdm>=4.66",
@@ -33,7 +34,10 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-filterwarnings = ["ignore:Sparse CSR tensor support is in beta state:UserWarning"]
+filterwarnings = [
+    "ignore:Sparse CSR tensor support is in beta state:UserWarning",
+    "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",  # Box2D (SWIG)
+]
 
 [tool.ruff]
 line-length = 100
