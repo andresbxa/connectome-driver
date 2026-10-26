@@ -52,9 +52,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", default="configs/data.yaml")
     parser.add_argument("--max-levels", type=int, default=40)
+    parser.add_argument("overrides", nargs="*", help="config overrides, e.g. raw_dir=elsewhere")
     args = parser.parse_args()
 
-    cfg = load_config(args.config)
+    cfg = load_config(args.config, args.overrides)
     raw_dir = Path(cfg.raw_dir)
     for name in cfg.files.values():
         path = raw_dir / name

@@ -29,14 +29,18 @@ pip install -e ".[dev]"
 ## Data
 
 The FlyWire data is **not** included in this repository. Download it yourself from
-[FlyWire Codex](https://codex.flywire.ai/api/download) (materialization **783**), accepting
-the FlyWire terms of use, and place these files in `data/raw/`:
+[FlyWire Codex](https://codex.flywire.ai/api/download?dataset=fafb) (sign-in required, dataset
+**FAFB v783**), agreeing to the FlyWire citation guidelines, and place these files in `data/raw/`:
 
-| File | Content |
-|---|---|
-| `connections.csv.gz` | Connections between neurons (pre, post, neuropil, synapse count) |
-| `classification.csv.gz` | Hierarchical annotations (`super_class`, `class`, ...) |
-| `neurons.csv.gz` | Predicted neurotransmitter per neuron |
+| Codex entry | File | Content |
+|---|---|---|
+| Connections (Filtered) | `connections_princeton.csv.gz` | One row per (pre, post, neuropil); pairs with >= 5 synapses |
+| Classification / Hierarchical Annotations | `classification.csv.gz` | `flow`, `super_class`, `class`, `sub_class`, `side`, ... |
+| Neurotransmitter Type Predictions | `neurons.csv.gz` | Predicted neurotransmitter per neuron |
+
+About 14% of neurons have no neuron-level neurotransmitter prediction. For them the
+transmitter label on their outgoing connections is used instead (it is unique per neuron, and
+it always matches the neuron-level prediction where both exist).
 
 Then inspect and preprocess:
 

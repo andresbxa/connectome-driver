@@ -5,7 +5,7 @@ raw_dir: data/raw
 processed_dir: data/processed
 
 files:
-  connections: connections.csv.gz
+  connections: connections_princeton.csv.gz  # "Connections (Filtered)" on Codex
   classification: classification.csv.gz
   neurons: neurons.csv.gz
 
@@ -47,8 +47,14 @@ signs:
   oct: 1
   unknown: 1
 
+# Fast-iteration subgraph: neurons on a visual-afferent -> readout path of at most k hops.
+# The brain is shallow (every reachable descending neuron is <= 5 hops from a photoreceptor),
+# so k grows the subgraph quickly: k=3 keeps ~13k neurons, k=4 already ~73k.
+subgraph:
+  k: 3
+
 stats:
   # Hop budgets used to report reachability from visual afferents to the readout neurons.
-  hop_budgets: [4, 8, 12]
+  hop_budgets: [2, 3, 4, 8, 12]
   # Path lengths k explored for the visual-afferent -> readout subgraph.
-  subgraph_k: [4, 5, 6, 7, 8]
+  subgraph_k: [3, 4, 5, 6]
