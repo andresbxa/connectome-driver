@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it as below. If you use it with FlyWire data,
+  also cite the FlyWire papers listed in the README.
+title: "Connectome Driver: the Drosophila connectome as the core of a driving policy"
+type: software
+authors:
+  - alias: andresbxa
+  - given-names: Joshue
+    family-names: Calero Tamayo
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/andresbxa/connectome-driver"
+keywords:
+  - connectome
+  - Drosophila
+  - FlyWire
+  - reinforcement learning
+  - graph neural networks

@@ -8,7 +8,10 @@ version = "0.1.0"
 description = "The Drosophila connectome (FlyWire) as the core of a reinforcement-learning policy that learns to drive in CarRacing."
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "andresbxa" }]
+authors = [
+    { name = "andresbxa" },
+    { name = "Joshue Calero Tamayo" },
+]
 requires-python = ">=3.11"
 dependencies = [
     # PyTorch is installed separately from the CUDA wheel index (see README).
