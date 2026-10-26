@@ -20,6 +20,7 @@ import pytest
 from connectome_driver.utils.config import load_config
 
 CONFIG = Path(__file__).resolve().parents[1] / "configs" / "data.yaml"
+CONNECTIONS_FILE = "connections_princeton.csv.gz"
 
 CLASSIFICATION = [
     # root_id, flow, super_class, class
@@ -37,8 +38,12 @@ CLASSIFICATION = [
 
 NEUROTRANSMITTERS = [
     (101, "ACH"), (102, "ACH"), (103, "ACH"), (201, "GABA"), (202, "GLUT"),
-    (203, "ACH"), (301, "ACH"), (401, "ACH"), (501, "DA"),
-]  # 302 has no prediction
+    (203, None), (301, "ACH"), (302, None), (401, "ACH"), (501, "DA"),
+]  # 203 and 302 have no neuron-level prediction, as ~14% of v783 neurons
+
+# Transmitter label on the connections, one per presynaptic neuron as in Codex. It fills in
+# 203 (GABA); 302 has no outgoing connections and stays unknown.
+EDGE_TRANSMITTER = {**dict(NEUROTRANSMITTERS), 203: "GABA", 999: "ACH"}
 
 CONNECTIONS = [
     # pre, post, neuropil, syn_count
@@ -74,8 +79,8 @@ def raw_dir(tmp_path: Path) -> Path:
     nts["nt_type_score"] = 0.9
     nts.to_csv(d / "neurons.csv.gz", index=False)
     conn = pd.DataFrame(CONNECTIONS, columns=["pre_root_id", "post_root_id", "neuropil", "syn_count"])
-    conn["nt_type"] = "ACH"
-    conn.to_csv(d / "connections.csv.gz", index=False)
+    conn["nt_type"] = conn["pre_root_id"].map(EDGE_TRANSMITTER)
+    conn.to_csv(d / CONNECTIONS_FILE, index=False)
     return d
 
 

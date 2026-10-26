@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import torch
-from conftest import EXPECTED_EDGES
+from conftest import CONNECTIONS_FILE, EXPECTED_EDGES
 
 from connectome_driver.data import codex
 from connectome_driver.data.graph import (
@@ -17,7 +17,7 @@ from connectome_driver.data.graph import (
 @pytest.fixture
 def graph(raw_dir):
     neurons = codex.read_neuron_table(raw_dir / "classification.csv.gz", raw_dir / "neurons.csv.gz")
-    conns = codex.read_connections(raw_dir / "connections.csv.gz")
+    conns = codex.read_connections(raw_dir / CONNECTIONS_FILE)
     g, report = build_connectome(neurons, conns, min_syn_count=5, drop_autapses=True)
     return g, report
 

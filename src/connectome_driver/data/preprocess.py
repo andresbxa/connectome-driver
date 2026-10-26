@@ -9,13 +9,20 @@ from omegaconf import DictConfig, OmegaConf
 
 from connectome_driver.data import codex
 from connectome_driver.data.graph import Connectome, build_connectome, save_connectome
-from connectome_driver.data.partition import assign_roles, neuron_signs, select
+from connectome_driver.data.partition import (
+    assign_roles,
+    fill_transmitter_from_edges,
+    neuron_signs,
+    select,
+)
 
 
 def preprocess(cfg: DictConfig) -> tuple[Connectome, dict]:
     raw = Path(cfg.raw_dir)
     neurons = codex.read_neuron_table(raw / cfg.files.classification, raw / cfg.files.neurons)
+    connections = codex.read_connections(raw / cfg.files.connections)
 
+    neurons["nt_type"], neurons["nt_source"] = fill_transmitter_from_edges(neurons, connections)
     neurons["role"] = assign_roles(
         neurons["super_class"], cfg.partition.afferent, cfg.partition.efferent
     )
@@ -23,11 +30,12 @@ def preprocess(cfg: DictConfig) -> tuple[Connectome, dict]:
     neurons["is_visual_afferent"] = select(neurons, cfg.visual_afferents)
     neurons["is_readout"] = select(neurons, cfg.readout)
 
-    connections = codex.read_connections(raw / cfg.files.connections)
     graph, report = build_connectome(
         neurons, connections, cfg.edges.min_syn_count, cfg.edges.drop_autapses
     )
     report["neurons"] = graph.num_nodes
+    for source, count in neurons["nt_source"].value_counts().items():
+        report[f"nt_from_{source}"] = int(count)
     report["visual_afferents"] = int(neurons["is_visual_afferent"].sum())
     report["readout"] = int(neurons["is_readout"].sum())
     if report["visual_afferents"] == 0 or report["readout"] == 0:

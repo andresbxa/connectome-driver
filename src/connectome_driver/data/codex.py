@@ -10,12 +10,12 @@ from pathlib import Path
 
 import pandas as pd
 
-CONNECTION_COLUMNS = ["pre_root_id", "post_root_id", "neuropil", "syn_count"]
+CONNECTION_COLUMNS = ["pre_root_id", "post_root_id", "neuropil", "syn_count", "nt_type"]
 CLASSIFICATION_COLUMNS = ["root_id", "flow", "super_class", "class", "sub_class", "side"]
 NEURON_COLUMNS = ["root_id", "nt_type"]
 
 # Columns that may be absent without breaking the pipeline.
-OPTIONAL_COLUMNS = {"flow", "sub_class", "side"}
+OPTIONAL_COLUMNS = {"flow", "sub_class", "side", "nt_type"}
 
 
 def _read(path: Path, columns: list[str], dtype: dict) -> pd.DataFrame:
@@ -32,11 +32,17 @@ def _read(path: Path, columns: list[str], dtype: dict) -> pd.DataFrame:
 
 
 def read_connections(path: Path) -> pd.DataFrame:
-    """One row per (pre, post, neuropil) with its synapse count."""
+    """One row per (pre, post, neuropil) with its synapse count and transmitter."""
     return _read(
         path,
         CONNECTION_COLUMNS,
-        {"pre_root_id": "int64", "post_root_id": "int64", "neuropil": "category", "syn_count": "int32"},
+        {
+            "pre_root_id": "int64",
+            "post_root_id": "int64",
+            "neuropil": "category",
+            "syn_count": "int32",
+            "nt_type": "category",
+        },
     )
 
 

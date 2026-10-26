@@ -7,6 +7,7 @@ from connectome_driver.data.partition import (
     EFFERENT,
     INTRINSIC,
     assign_roles,
+    fill_transmitter_from_edges,
     neuron_signs,
     select,
 )
@@ -37,6 +38,19 @@ def test_glutamate_sign_is_configurable():
 def test_signs_must_be_unit():
     with pytest.raises(ValueError):
         neuron_signs(pd.Series(["ACH"], dtype="string"), {"ach": 2})
+
+
+def test_transmitter_fallback_only_when_edges_agree():
+    neurons = pd.DataFrame(
+        {"root_id": [1, 2, 3, 4], "nt_type": ["ACH", None, None, None]}
+    ).astype({"nt_type": "string"})
+    conns = pd.DataFrame(
+        {"pre_root_id": [1, 2, 2, 3, 3], "nt_type": ["GABA", "GLUT", "GLUT", "ACH", "GABA"]}
+    ).astype({"nt_type": "category"})
+    nt, source = fill_transmitter_from_edges(neurons, conns)
+    # Neuron-level prediction wins; 3 has conflicting edges and 4 has none.
+    assert nt.tolist() == ["ACH", "GLUT", pd.NA, pd.NA]
+    assert source.tolist() == ["neuron", "edges", "none", "none"]
 
 
 def test_select_ands_columns_and_ors_values():

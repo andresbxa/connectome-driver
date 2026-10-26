@@ -39,6 +39,32 @@ def select(neurons: pd.DataFrame, rules: Mapping[str, Sequence[str]]) -> np.ndar
     return mask
 
 
+def fill_transmitter_from_edges(
+    neurons: pd.DataFrame, connections: pd.DataFrame
+) -> tuple[pd.Series, pd.Series]:
+    """Neuron transmitter, falling back to the one on its outgoing connections.
+
+    In v783, ~14% of neurons have no neuron-level prediction (``nt_type`` empty, score 0),
+    but every connection carries a transmitter label, and the label is unique per presynaptic
+    neuron. Where a neuron has a prediction the two always agree, so the connection label is
+    used as a fallback. Neurons whose connections disagree (none in v783) stay unknown.
+
+    Returns the filled ``nt_type`` and its source: ``neuron``, ``edges`` or ``none``.
+    """
+    nt = neurons["nt_type"].astype("string")
+    source = pd.Series(np.where(nt.notna(), "neuron", "none"), index=neurons.index)
+    if "nt_type" not in connections.columns:
+        return nt, source
+
+    per_pre = connections.groupby("pre_root_id", observed=True)["nt_type"].agg(["nunique", "first"])
+    unique = per_pre.loc[per_pre["nunique"] == 1, "first"].astype("string")
+    fallback = neurons["root_id"].map(unique)
+    fill = nt.isna() & fallback.notna()
+    nt = nt.where(~fill, fallback)
+    source[fill] = "edges"
+    return nt, source
+
+
 def neuron_signs(nt_type: pd.Series, sign_map: Mapping[str, int]) -> np.ndarray:
     """Sign (+1 / -1) of each neuron's outgoing synapses from its predicted neurotransmitter.
 

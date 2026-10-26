@@ -58,6 +58,8 @@ def test_preprocess_end_to_end(cfg):
     n = g.neurons.set_index("root_id")
     assert n.loc[202, "sign"] == -1  # glutamate is inhibitory by default
     assert n.loc[302, "sign"] == 1  # unknown transmitter
+    assert n.loc[203, "sign"] == -1  # GABA, taken from its outgoing connections
+    assert n.loc[[201, 203, 302], "nt_source"].tolist() == ["neuron", "edges", "none"]
     assert n["role"].tolist() == [0, 0, 0, 1, 1, 1, 2, 2, 2, 0]
 
     sources = np.flatnonzero(g.neurons["is_visual_afferent"])
