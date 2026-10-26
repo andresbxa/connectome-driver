@@ -1,0 +1,4 @@
+# MLP core: no graph structure. Baseline for Phase 2; parameter-matched control in Phase 4.
+core:
+  type: mlp
+  hidden_dims: [256, 256]

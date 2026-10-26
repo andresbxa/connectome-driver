@@ -33,7 +33,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -m 'not slow'"
+markers = ["slow: learning tests that take a minute or more (run with -m slow)"]
 filterwarnings = [
     "ignore:Sparse CSR tensor support is in beta state:UserWarning",
     "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",  # Box2D (SWIG)
