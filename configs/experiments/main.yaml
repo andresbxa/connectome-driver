@@ -1,0 +1,22 @@
+# Main experiment on the k=3 path subgraph (see README). Every run uses configs/train.yaml;
+# an entry adds `--model` files and overrides. Runs are executed seed by seed (all variants
+# with seed 1 first), so an interrupted plan still has balanced results.
+
+common: []   # overrides applied to every run
+
+runs:
+  # Main comparison, T = 8.
+  connectome:   {model: [configs/model/connectome.yaml], seeds: [1, 2, 3]}
+  rewired:      {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], seeds: [1, 2, 3]}
+  random:       {model: [configs/model/connectome.yaml, configs/variant/random.yaml], seeds: [1, 2, 3]}
+  block:        {model: [configs/model/connectome.yaml, configs/variant/block.yaml], seeds: [1, 2, 3]}
+  mlp_matched:  {model: [configs/model/mlp_matched.yaml], seeds: [1, 2, 3]}
+  nocore:       {model: [configs/model/nocore.yaml], seeds: [1, 2, 3]}
+
+  # Depth sweep: is a difference between graphs just a matter of how far the signal travels?
+  connectome_T4:  {model: [configs/model/connectome.yaml], overrides: [model.core.steps=4], seeds: [1, 2]}
+  connectome_T12: {model: [configs/model/connectome.yaml], overrides: [model.core.steps=12], seeds: [1, 2]}
+  rewired_T4:     {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], overrides: [model.core.steps=4], seeds: [1, 2]}
+  rewired_T12:    {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], overrides: [model.core.steps=12], seeds: [1, 2]}
+  random_T4:      {model: [configs/model/connectome.yaml, configs/variant/random.yaml], overrides: [model.core.steps=4], seeds: [1, 2]}
+  random_T12:     {model: [configs/model/connectome.yaml, configs/variant/random.yaml], overrides: [model.core.steps=12], seeds: [1, 2]}

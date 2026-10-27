@@ -79,9 +79,15 @@ class FrameSkip(gym.Wrapper):
         return obs, total, terminated, truncated, info
 
 
-def make_env(cfg: DictConfig) -> gym.Env:
-    """A single preprocessed CarRacing environment (discrete actions)."""
-    env = FastCarRacing(continuous=False, lap_complete_percent=cfg.lap_complete_percent)
+def make_env(cfg: DictConfig, render_mode: str | None = None) -> gym.Env:
+    """A single preprocessed CarRacing environment (discrete actions).
+
+    ``render_mode="rgb_array"`` only enables ``env.unwrapped.render()`` (used to record videos);
+    observations and dynamics are the same.
+    """
+    env = FastCarRacing(
+        continuous=False, lap_complete_percent=cfg.lap_complete_percent, render_mode=render_mode
+    )
     env = TimeLimit(env, max_episode_steps=MAX_EPISODE_FRAMES)
     env = RecordEpisodeStatistics(env)
     env = FrameSkip(env, cfg.frame_skip)
