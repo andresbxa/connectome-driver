@@ -1,7 +1,9 @@
 # Whole-brain check (139,255 neurons, T = 4, ~4.8 h per run on an 8 GB laptop GPU).
 # Does the subgraph result hold on the complete connectome?
+# A full 256-sample minibatch does not fit in 8 GB here; micro-batches of 128 give the same
+# update (results/profile_core.json). Use 64 on a card with less memory.
 
-common: [model.graph.subgraph_k=null, model.core.steps=4]
+common: [model.graph.subgraph_k=null, model.core.steps=4, ppo.micro_batch_size=128]
 
 runs:
   connectome_full_T4: {model: [configs/model/connectome.yaml], seeds: [1, 2]}
