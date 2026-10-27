@@ -11,11 +11,15 @@ Usage:
 
 Wall-clock times of concurrent runs include contention, so they are not used as a
 cost metric; per-step time and memory come from scripts/profile_core.py.
+
+On Windows the runner asks the system not to idle-sleep while it works (a laptop that went to
+sleep froze an overnight sweep); the request ends with the process. Closing the lid still sleeps.
 """
 
 from __future__ import annotations
 
 import argparse
+import ctypes
 import subprocess
 import sys
 import time
@@ -56,6 +60,13 @@ def load_plan(path: Path) -> list[Run]:
             if i < len(e["seeds"]):
                 runs.append(Run(name, e["seeds"][i], e["model"], common + e.get("overrides", [])))
     return runs
+
+
+def prevent_idle_sleep() -> None:
+    """Keep Windows awake while this process lives (no system setting is changed)."""
+    if sys.platform == "win32":
+        es_continuous, es_system_required = 0x80000000, 0x00000001
+        ctypes.windll.kernel32.SetThreadExecutionState(es_continuous | es_system_required)
 
 
 def execute(run: Run, run_dir: Path, episodes: int) -> str:
@@ -101,6 +112,7 @@ def main() -> None:
 
     todo = [r for r in runs if r.status(run_dir) != "done"]
     print(f"\n{len(todo)} runs to do, {args.parallel} at a time\n", flush=True)
+    prevent_idle_sleep()
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:
         for message in pool.map(lambda r: execute(r, run_dir, args.episodes), todo):
             print(time.strftime("%H:%M ") + message, flush=True)
