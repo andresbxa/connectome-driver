@@ -49,7 +49,7 @@ def apply_variant(graph: Connectome, variant: str, seed: int, cfg: DictConfig) -
         raise ValueError(f"unknown graph variant {variant!r}; expected one of {VARIANTS}")
     try:
         from connectome_driver.data import nulls
-    except ImportError as err:  # implemented in a separate task (docs/tasks/null-models.md)
+    except ImportError as err:  # specified in docs/tasks/null-models.md
         raise NotImplementedError(f"graph variant {variant!r} needs data/nulls.py") from err
     swaps = cfg.get("swaps_per_edge", 10.0)
     if variant == "rewired":
