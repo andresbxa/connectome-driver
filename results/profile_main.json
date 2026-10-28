@@ -1,0 +1,68 @@
+{
+  "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+  "env_step_ms": 23.670026000472717,
+  "iterations_per_run": 976,
+  "total_steps_per_run": 1000000,
+  "calibration": null,
+  "graphs": {
+    "k3": {
+      "neurons": 13261,
+      "edges": 107764,
+      "inputs": 3628,
+      "readouts": 1014
+    },
+    "k4": {
+      "neurons": 73043,
+      "edges": 1651550,
+      "inputs": 9627,
+      "readouts": 1283
+    },
+    "full": {
+      "neurons": 139255,
+      "edges": 3732460,
+      "inputs": 11426,
+      "readouts": 1305
+    }
+  },
+  "rows": [
+    {
+      "exp": "connectome",
+      "model": [
+        "configs/model/connectome.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 12.4265599996,
+      "micro_batch": 256,
+      "update_ms": 106.2717000023,
+      "peak_mem_mb": 1571.2841796875,
+      "params": 2538887,
+      "est_hours_per_run": 1.7136147675
+    },
+    {
+      "exp": "mlp_matched",
+      "model": [
+        "configs/model/mlp_matched.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 3.3121999993,
+      "micro_batch": 256,
+      "update_ms": 10.6793500017,
+      "peak_mem_mb": 123.265625,
+      "params": 2537302,
+      "est_hours_per_run": 0.9826678498
+    },
+    {
+      "exp": "nocore",
+      "model": [
+        "configs/model/nocore.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 3.0831150012,
+      "micro_batch": 256,
+      "update_ms": 11.6599000175,
+      "peak_mem_mb": 124.1025390625,
+      "params": 2727750,
+      "est_hours_per_run": 0.9789714994
+    }
+  ]
+}
