@@ -95,7 +95,9 @@ def main() -> None:
         ax.spines[side].set_visible(False)
     ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, _: f"{x / 1e6:.1f}M"))
     if len(args.experiments) > 1:  # a single line is already named by its direct label
-        ax.legend(frameon=False, loc="lower right")
+        # Curves rise and then plateau, so the middle right is usually empty (lower right can
+        # hold a variant that never learned).
+        ax.legend(frameon=False, loc="center right")
     fig.tight_layout()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out, dpi=150, facecolor=SURFACE)
