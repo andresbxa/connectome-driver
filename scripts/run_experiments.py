@@ -24,42 +24,10 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
 from pathlib import Path
 
-from omegaconf import OmegaConf
-
 from connectome_driver.utils.config import load_config
-
-
-@dataclass
-class Run:
-    exp_name: str
-    seed: int
-    model: list[str]
-    overrides: list[str] = field(default_factory=list)
-
-    def dir(self, run_dir: Path) -> Path:
-        return run_dir / self.exp_name / f"seed{self.seed}"
-
-    def status(self, run_dir: Path) -> str:
-        d = self.dir(run_dir)
-        if (d / "DONE").exists():
-            return "done" if (d / "eval.json").exists() else "trained"
-        return "partial" if d.exists() else "pending"
-
-
-def load_plan(path: Path) -> list[Run]:
-    plan = OmegaConf.load(path)
-    common = list(plan.get("common", []))
-    entries = {name: OmegaConf.to_container(e) for name, e in plan.runs.items()}
-    max_seeds = max(len(e["seeds"]) for e in entries.values())
-    runs = []
-    for i in range(max_seeds):  # seed by seed
-        for name, e in entries.items():
-            if i < len(e["seeds"]):
-                runs.append(Run(name, e["seeds"][i], e["model"], common + e.get("overrides", [])))
-    return runs
+from connectome_driver.utils.plan import Run, load_plan
 
 
 def prevent_idle_sleep() -> None:
