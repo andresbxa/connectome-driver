@@ -87,6 +87,15 @@ def test_random_graph_keeps_size_and_weights(graph):
     assert pairs(null) == pairs(graph)
 
 
+@pytest.mark.parametrize("nodes, edges", [(3, 6), (20, 80)])
+def test_random_graph_reports_actual_new_edge_fraction(nodes, edges):
+    graph = random_connectome(n=nodes, e=edges)
+    report = {}
+    null = random_graph(graph, seed=1, report=report)
+    expected = len(edge_set(null) - edge_set(graph)) / graph.num_edges
+    assert report["new_edge_fraction"] == pytest.approx(expected)
+
+
 @pytest.mark.parametrize("make", [
     lambda g, s: rewire_degree_preserving(g, seed=s, swaps_per_edge=2),
     lambda g, s: random_graph(g, seed=s),

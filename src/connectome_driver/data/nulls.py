@@ -150,7 +150,8 @@ def random_graph(graph: Connectome, seed: int, report: dict | None = None) -> Co
     perm = rng.permutation(e)
     if report is not None:
         real = np.sort(graph.src * n + graph.dst)
-        report.update(new_edge_fraction=float(1 - np.mean(_contains(real, keys))))
+        sampled = src * n + dst  # compare both graphs in the same N x N encoding
+        report.update(new_edge_fraction=float(1 - np.mean(_contains(real, sampled))))
     return _with_edges(graph, src.astype(np.int64), dst.astype(np.int64), graph.syn_count[perm], graph.neuropil[perm])
 
 
