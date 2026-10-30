@@ -1,0 +1,208 @@
+{
+  "seed": 0,
+  "swaps_per_edge": 10,
+  "blocks": "super_class",
+  "hop_budgets": [
+    2,
+    3,
+    4,
+    8,
+    12
+  ],
+  "k3": {
+    "neurons": 13261,
+    "connectome": {
+      "edges": 107764,
+      "max_out_degree": 798,
+      "reachability": {
+        "targets": 1014,
+        "hop_histogram": {
+          "1": 2,
+          "2": 153,
+          "3": 859
+        },
+        "reachable_fraction": {
+          "2": 0.15285996055226825,
+          "3": 1.0,
+          "4": 1.0,
+          "8": 1.0,
+          "12": 1.0
+        }
+      }
+    },
+    "rewired": {
+      "edges": 107764,
+      "max_out_degree": 798,
+      "reachability": {
+        "targets": 1014,
+        "hop_histogram": {
+          "1": 823,
+          "2": 186,
+          "3": 4,
+          "4": 1
+        },
+        "reachable_fraction": {
+          "2": 0.995069033530572,
+          "3": 0.9990138067061144,
+          "4": 1.0,
+          "8": 1.0,
+          "12": 1.0
+        }
+      },
+      "seconds": 1.38,
+      "swaps_requested": 1077640,
+      "swaps_accepted": 1077640,
+      "proposals": 1131511,
+      "acceptance_rate": 0.952390210965691,
+      "rounds": 21,
+      "rewired_fraction": 0.9996566571396756
+    },
+    "random": {
+      "edges": 107764,
+      "max_out_degree": 23,
+      "reachability": {
+        "targets": 1014,
+        "hop_histogram": {
+          "1": 905,
+          "2": 108,
+          "3": 1
+        },
+        "reachable_fraction": {
+          "2": 0.9990138067061144,
+          "3": 1.0,
+          "4": 1.0,
+          "8": 1.0,
+          "12": 1.0
+        }
+      },
+      "seconds": 0.08,
+      "new_edge_fraction": 0.9993411528896478
+    },
+    "block": {
+      "edges": 107764,
+      "max_out_degree": 798,
+      "reachability": {
+        "targets": 1014,
+        "hop_histogram": {
+          "1": 2,
+          "2": 228,
+          "3": 758,
+          "4": 26
+        },
+        "reachable_fraction": {
+          "2": 0.22682445759368836,
+          "3": 0.9743589743589743,
+          "4": 1.0,
+          "8": 1.0,
+          "12": 1.0
+        }
+      },
+      "seconds": 1.79,
+      "swaps_requested": 1077640,
+      "swaps_accepted": 1077640,
+      "proposals": 1292562,
+      "acceptance_rate": 0.8337240302592835,
+      "rounds": 24,
+      "rewired_fraction": 0.9934579265803051,
+      "block_pairs": 50
+    }
+  },
+  "full": {
+    "neurons": 139255,
+    "connectome": {
+      "edges": 3732460,
+      "max_out_degree": 6523,
+      "reachability": {
+        "targets": 1305,
+        "hop_histogram": {
+          "1": 2,
+          "2": 153,
+          "3": 859,
+          "4": 269,
+          "5": 4
+        },
+        "reachable_fraction": {
+          "2": 0.11877394636015326,
+          "3": 0.7770114942528735,
+          "4": 0.9831417624521073,
+          "8": 0.9862068965517241,
+          "12": 0.9862068965517241
+        }
+      }
+    },
+    "rewired": {
+      "edges": 3732460,
+      "max_out_degree": 6523,
+      "reachability": {
+        "targets": 1305,
+        "hop_histogram": {
+          "1": 746,
+          "2": 531,
+          "3": 12
+        },
+        "reachable_fraction": {
+          "2": 0.978544061302682,
+          "3": 0.9877394636015325,
+          "4": 0.9877394636015325,
+          "8": 0.9877394636015325,
+          "12": 0.9877394636015325
+        }
+      },
+      "seconds": 304.15,
+      "swaps_requested": 37324600,
+      "swaps_accepted": 37324600,
+      "proposals": 39190823,
+      "acceptance_rate": 0.952381122488803,
+      "rounds": 21,
+      "rewired_fraction": 0.9999582045085547
+    },
+    "random": {
+      "edges": 3732460,
+      "max_out_degree": 52,
+      "reachability": {
+        "targets": 1305,
+        "hop_histogram": {
+          "1": 1170,
+          "2": 135
+        },
+        "reachable_fraction": {
+          "2": 1.0,
+          "3": 1.0,
+          "4": 1.0,
+          "8": 1.0,
+          "12": 1.0
+        }
+      },
+      "seconds": 5.62,
+      "new_edge_fraction": 0.9998279954775134
+    },
+    "block": {
+      "edges": 3732460,
+      "max_out_degree": 6523,
+      "reachability": {
+        "targets": 1305,
+        "hop_histogram": {
+          "1": 69,
+          "2": 737,
+          "3": 471,
+          "4": 12
+        },
+        "reachable_fraction": {
+          "2": 0.617624521072797,
+          "3": 0.978544061302682,
+          "4": 0.9877394636015325,
+          "8": 0.9877394636015325,
+          "12": 0.9877394636015325
+        }
+      },
+      "seconds": 309.13,
+      "swaps_requested": 37324600,
+      "swaps_accepted": 37324600,
+      "proposals": 41056076,
+      "acceptance_rate": 0.9091126974725983,
+      "rounds": 22,
+      "rewired_fraction": 0.9992061535823559,
+      "block_pairs": 90
+    }
+  }
+}

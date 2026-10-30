@@ -1,10 +1,9 @@
 # Task: null-model graphs (Phase 4)
 
-**Branch:** `phase-4-nulls` (from `main`) · **Depends on:** `main` (Phases 1-4 are merged)
-**Out of scope:** model, training and PPO code; they live in other phases.
-
-**Two parts:** (1) the null models, below; (2) once they are merged, the whole-brain runs on
-your GPU (see "After the nulls: whole-brain runs").
+**Status: done** in `phase-4-nulls`: `src/connectome_driver/data/nulls.py`,
+`tests/test_nulls.py`, `scripts/null_stats.py` (report in `results/null_stats.json`). This file
+stays as the specification the code was written against. The open task for Joshue is now
+[`whole-brain-runs.md`](whole-brain-runs.md).
 
 ## Why this matters
 
@@ -125,72 +124,3 @@ the main experiment trains on) and the full brain, write `results/null_stats.jso
 The last point matters: random graphs have much shorter paths than the real one, so a null
 could beat the connectome just by delivering the visual signal to the descending neurons in
 fewer steps. We need these numbers to interpret the results.
-
-## After the nulls: whole-brain runs on your GPU
-
-The main comparison (k = 3 subgraph) runs on Andrés's laptop. Your GPU runs the check on the
-complete connectome: `configs/experiments/whole_brain.yaml`, connectome / rewired / random at
-T = 4, 2 seeds each (6 runs, ~4.8 h each on an 8 GB RTX 3070 Ti Laptop; slower or faster on
-yours). Start once your nulls PR and the experiment runner are both on `main`.
-
-1. **Check that it fits.** Send the output of `nvidia-smi`. With less than 8 GB, change
-   `ppo.micro_batch_size=128` to `64` in the plan's `common` line (the update is identical,
-   only slower). On Windows a run that does not fit does not crash: the driver silently
-   spills to system RAM and training becomes several times slower, so check the `sps` column
-   of the first log lines.
-2. **Keep the machine awake and plugged in.** The runner asks Windows not to idle-sleep, but
-   closing the lid or running on battery still suspends or throttles it (a sleeping laptop
-   froze our first overnight sweep for 8 hours).
-3. **Run the plan**, one run at a time (a full-brain run uses most of the GPU):
-
-   ```bash
-   python scripts/run_experiments.py configs/experiments/whole_brain.yaml --status
-   python scripts/run_experiments.py configs/experiments/whole_brain.yaml
-   ```
-
-   Finished runs are skipped, so after an interruption run the same command again. A run
-   that was cut halfway starts again from zero (there is no mid-run resume). Each run
-   trains for 1M steps and then evaluates on 20 unseen tracks.
-4. **Send back** each `runs/<name>/seed<k>/` folder (`config.yaml`, `episodes.csv`,
-   `iterations.csv`, `eval.json`, `DONE`, `policy.pt`) and the `seed<k>.log` files, e.g. as a
-   zip. Do not commit `runs/`. Wall-clock times from your machine are not used as a cost
-   metric (all timings come from one machine), but say which GPU you used.
-
-## First: add your email as coauthor
-
-You are already listed as coauthor; only your email is missing. In your first commit:
-
-1. `pyproject.toml`: change your entry to
-   `{ name = "Joshue Calero Tamayo", email = "you@example.com" }`.
-2. `CITATION.cff`: add `email: you@example.com` under your entry (same indentation as
-   `family-names`).
-3. Set your git identity in the repo so your commits carry your name:
-   `git config user.name "Joshue Calero Tamayo"` and `git config user.email "you@example.com"`
-   (use your GitHub email, or the `...@users.noreply.github.com` one if you keep it private).
-
-## Setup
-
-```bash
-git clone https://github.com/andresbxa/connectome-driver.git
-cd connectome-driver
-python -m venv .venv
-.venv/Scripts/activate            # Windows; `source .venv/bin/activate` elsewhere
-pip install torch --index-url https://download.pytorch.org/whl/cu126
-pip install -e ".[dev]"
-nvidia-smi                        # tells us which GPU you have
-```
-
-Download the FlyWire v783 files with your own Codex account (see README, section Data), then:
-
-```bash
-python scripts/preprocess_connectome.py
-python scripts/graph_stats.py
-pytest
-```
-
-## Conventions
-
-- Code, comments and docstrings in English; match the style of `src/connectome_driver/data/`.
-- `ruff check src scripts tests` and `pytest` must pass.
-- Never commit anything under `data/`.
-- Small commits with descriptive messages; open a PR to `main` when done.
