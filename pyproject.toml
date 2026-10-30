@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [
     { name = "Andrés Bai" },
-    { name = "Joshue Calero Tamayo" },
+    { name = "Joshue Calero Tamayo", email = "joshuecalero@outlook.com" },
 ]
 requires-python = ">=3.11"
 dependencies = [

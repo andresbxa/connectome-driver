@@ -10,6 +10,7 @@ authors:
     alias: andresbxa
   - given-names: Joshue
     family-names: Calero Tamayo
+    email: "joshuecalero@outlook.com"
 version: 0.1.0
 license: MIT
 repository-code: "https://github.com/andresbxa/connectome-driver"
