@@ -8,7 +8,11 @@ For every plan entry with finished runs (trained and evaluated):
 - steps to a threshold: first agent step at which the mean of the last 20 training episodes
   reaches it, per seed; the table shows the median over the seeds that reached it;
 - comparison with a reference entry: difference of eval means and ratio of median steps to
-  each threshold (when every seed of both entries reached it), with Welch's t-test over seeds;
+  each threshold (when every seed of both entries reached it), with Welch's t-test over seeds.
+  An entry with a suffix is compared with the reference of the same suffix when there is one
+  (``rewired_T4`` with ``connectome_T4``);
+- depth sweep: eval return per graph and number of core steps T, for entries named
+  ``<graph>_T<steps>`` next to the ``<graph>`` entry they vary;
 - cost, from ``scripts/profile_core.py --plan`` (one machine, each entry configured as in
   training): rollout forward time, update time per minibatch, peak GPU memory, estimated hours
   per 1M-step run.
@@ -23,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -38,6 +43,7 @@ from connectome_driver.utils.plan import load_plan
 NUM_ACTIONS = 5
 FINAL_WINDOW = 100_000  # agent steps
 ROLLING_EPISODES = 20  # as the training log's "return(last 20)"
+DEPTH_ENTRY = re.compile(r"^(?P<graph>.+)_T(?P<steps>\d+)$")
 
 
 def steps_to(episodes: pd.DataFrame, threshold: float) -> int | None:
@@ -66,6 +72,26 @@ def summarize_entry(run_dirs: list[Path], thresholds: list[float]) -> dict:
     }
 
 
+def reference_for(name: str, reference: str, rows: dict) -> str | None:
+    """Entry ``name`` is compared with; None for the reference and its own variants."""
+    suffix = name[name.index("_"):] if "_" in name else ""
+    if name in (reference, reference + suffix):
+        return None
+    return reference + suffix if reference + suffix in rows else reference if reference in rows else None
+
+
+def depth_sweep(rows: dict, configs: dict) -> dict[str, dict[int, str]]:
+    """Graph -> {core steps: entry}, for ``<graph>_T<steps>`` entries and the ``<graph>`` entry."""
+    sweep: dict[str, dict[int, str]] = {}
+    for name in rows:
+        m = DEPTH_ENTRY.match(name)
+        if m and m["graph"] in rows:
+            sweep.setdefault(m["graph"], {})[int(m["steps"])] = name
+    for graph, entries in sweep.items():
+        entries[int(configs[graph].model.core.steps)] = graph
+    return {graph: dict(sorted(entries.items())) for graph, entries in sweep.items()}
+
+
 def parameter_counts(cfg) -> dict[str, int]:
     graph = build_graph(cfg.model.graph, seed=cfg.seed) if needs_graph(cfg.model) else None
     return build_policy(cfg.model, observation_shape(cfg.env), NUM_ACTIONS, graph).parameter_counts()
@@ -82,7 +108,7 @@ def fmt_p(p: float) -> str:
     return f"{p:.2f}" if p >= 0.01 else "< 0.01"
 
 
-def to_markdown(rows: dict, cost: dict, compare: dict, reference: str, thresholds: list[float]) -> str:
+def to_markdown(rows: dict, cost: dict, compare: dict, depth: dict, thresholds: list[float]) -> str:
     lines = ["### Performance", ""]
     head = ["Variant", "Seeds", "Eval return", "Per seed", "Final training return"]
     head += [f"Steps to {t:g}" for t in thresholds]
@@ -95,16 +121,28 @@ def to_markdown(rows: dict, cost: dict, compare: dict, reference: str, threshold
         lines.append("| " + " | ".join(cells) + " |")
 
     if compare:
-        head = ["Variant", "Eval return difference", "p"]
+        head = ["Variant", "Compared with", "Eval return difference", "p"]
         for t in thresholds:
             head += [f"Steps to {t:g}, ratio of medians", "p"]
-        lines += ["", f"### Compared with {reference} (Welch's t-test over seeds)", "",
+        lines += ["", "### Comparison with the reference (Welch's t-test over seeds)", "",
                   "| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
         for name, c in compare.items():
-            cells = [name, f"{c['difference']:+.0f}", fmt_p(c["p"])]
+            cells = [name, c["reference"], f"{c['difference']:+.0f}", fmt_p(c["p"])]
             for t in thresholds:
                 s = c["steps_to"].get(str(t))
                 cells += [f"{s['ratio_of_medians']:.2f}x", fmt_p(s["p"])] if s else ["n/a", ""]
+            lines.append("| " + " | ".join(cells) + " |")
+
+    if depth:
+        steps = sorted({t for entries in depth.values() for t in entries})
+        lines += ["", "### Depth sweep: eval return by number of core steps T (per seed in brackets)", "",
+                  "| Graph | " + " | ".join(f"T = {t}" for t in steps) + " |", "|---|" + "---|" * len(steps)]
+        for graph, entries in depth.items():
+            cells = [graph]
+            for t in steps:
+                r = rows[entries[t]] if t in entries else None
+                cells.append(f"{r['eval_mean']:.0f} ({' / '.join(f'{e:.0f}' for e in r['eval_per_seed'])})"
+                             if r else "")
             lines.append("| " + " | ".join(cells) + " |")
 
     if cost:
@@ -143,19 +181,21 @@ def main() -> None:
         configs[name] = load_config(done[0].dir(run_dir) / "config.yaml")
 
     compare = {}
-    if args.reference in rows:
-        ref = rows[args.reference]["eval_per_seed"]
-        for name, r in rows.items():
-            if name != args.reference and len(r["eval_per_seed"]) > 1 and len(ref) > 1:
-                t, p = stats.ttest_ind(r["eval_per_seed"], ref, equal_var=False)
-                compare[name] = {"difference": r["eval_mean"] - rows[args.reference]["eval_mean"],
-                                 "t": float(t), "p": float(p), "steps_to": {}}
-                for thr in map(str, args.thresholds):  # only when every seed of both reached it
-                    a, b = r["steps_to"][thr], rows[args.reference]["steps_to"][thr]
-                    if None not in a and None not in b:
-                        t, p = stats.ttest_ind(a, b, equal_var=False)
-                        compare[name]["steps_to"][thr] = {"ratio_of_medians": float(np.median(a) / np.median(b)),
-                                                          "t": float(t), "p": float(p)}
+    for name, r in rows.items():
+        ref_name = reference_for(name, args.reference, rows)
+        if ref_name is None or len(r["eval_per_seed"]) < 2 or len(rows[ref_name]["eval_per_seed"]) < 2:
+            continue
+        ref = rows[ref_name]
+        t, p = stats.ttest_ind(r["eval_per_seed"], ref["eval_per_seed"], equal_var=False)
+        compare[name] = {"reference": ref_name, "difference": r["eval_mean"] - ref["eval_mean"],
+                         "t": float(t), "p": float(p), "steps_to": {}}
+        for thr in map(str, args.thresholds):  # only when every seed of both reached it
+            a, b = r["steps_to"][thr], ref["steps_to"][thr]
+            if None not in a and None not in b:
+                t, p = stats.ttest_ind(a, b, equal_var=False)
+                compare[name]["steps_to"][thr] = {"ratio_of_medians": float(np.median(a) / np.median(b)),
+                                                  "t": float(t), "p": float(p)}
+    depth = depth_sweep(rows, configs)
 
     cost = {}
     if args.profile.exists():
@@ -172,9 +212,9 @@ def main() -> None:
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     result = {"plan": args.plan.as_posix(), "thresholds": args.thresholds, "reference": args.reference,
-              "variants": rows, "comparison": compare, "cost": cost}
+              "variants": rows, "comparison": compare, "depth_sweep": depth, "cost": cost}
     args.out.with_suffix(".json").write_text(json.dumps(result, indent=2))
-    markdown = to_markdown(rows, cost, compare, args.reference, args.thresholds)
+    markdown = to_markdown(rows, cost, compare, depth, args.thresholds)
     args.out.with_suffix(".md").write_text(markdown, encoding="utf-8")
     print(markdown)
     print(f"written to {args.out}.json and .md")

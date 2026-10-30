@@ -26,10 +26,11 @@ VARIANT_COLORS = {
     "connectome": "#2a78d6",
     "rewired": "#eb6834",
     "random": "#1baf7a",
+    "block": "#6250d6",
     "mlp": "#eda100",
     "nocore": "#e87ba4",
 }
-FALLBACK_COLORS = ["#6250d6", "#008300", "#e34948"]
+FALLBACK_COLORS = ["#008300", "#e34948"]
 INK, MUTED, GRID, SURFACE = "#0b0b0b", "#898781", "#e1e0d9", "#fcfcfb"
 
 
@@ -38,6 +39,27 @@ def color_for(name: str, used: list[str]) -> str:
         if name.startswith(key):
             return color
     return FALLBACK_COLORS[len(used) % len(FALLBACK_COLORS)]
+
+
+def spread_labels(ys: list[float], gap: float) -> list[float]:
+    """Heights for labels meant at ``ys``, at least ``gap`` apart; overlapping labels are stacked
+    as a group centred on the mean of their lines."""
+    def span(group: list[int]) -> tuple[float, float]:
+        centre = float(np.mean([ys[i] for i in group]))
+        return centre - (len(group) - 1) / 2 * gap, centre + (len(group) - 1) / 2 * gap
+
+    groups: list[list[int]] = []
+    for i in np.argsort(ys):
+        groups.append([int(i)])
+        while len(groups) > 1 and span(groups[-2])[1] + gap > span(groups[-1])[0]:
+            top = groups.pop()
+            groups[-1] += top
+    heights = [0.0] * len(ys)
+    for group in groups:
+        low = span(group)[0]
+        for k, i in enumerate(group):
+            heights[i] = low + k * gap
+    return heights
 
 
 def seed_curve(csv: Path, bins: np.ndarray) -> np.ndarray:
@@ -70,6 +92,7 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(8, 4.5), facecolor=SURFACE)
     ax.set_facecolor(SURFACE)
     used: list[str] = []
+    ends: list[tuple[str, float, float]] = []
     for exp in args.experiments:
         curves = np.array([seed_curve(csv, bins) for csv in sorted(exp.glob("seed*/episodes.csv"))])
         color = color_for(exp.name, used)
@@ -83,8 +106,12 @@ def main() -> None:
         if n > 1:
             ax.fill_between(centers, np.nanmin(curves, 0), np.nanmax(curves, 0), color=color, alpha=0.15, linewidth=0)
         last = np.flatnonzero(~np.isnan(mean))[-1]
-        ax.annotate(exp.name, (centers[last], mean[last]), xytext=(4, 0), textcoords="offset points",
-                    va="center", color=INK, fontsize=9)
+        ends.append((exp.name, centers[last], mean[last]))
+
+    low, high = ax.get_ylim()
+    heights = spread_labels([y for _, _, y in ends], gap=0.045 * (high - low))
+    for (name, x, _), y in zip(ends, heights, strict=True):
+        ax.annotate(name, (x, y), xytext=(4, 0), textcoords="offset points", va="center", color=INK, fontsize=9)
 
     ax.set_xlabel("agent steps (1 step = 4 frames)")
     ax.set_ylabel("episode return")
@@ -100,7 +127,7 @@ def main() -> None:
         ax.legend(frameon=False, loc="center right")
     fig.tight_layout()
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(args.out, dpi=150, facecolor=SURFACE)
+    fig.savefig(args.out, dpi=150, facecolor=SURFACE, bbox_inches="tight", pad_inches=0.1)
     print(f"written to {args.out}")
 
 
