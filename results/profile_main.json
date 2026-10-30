@@ -1,6 +1,6 @@
 {
   "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
-  "env_step_ms": 23.670026000472717,
+  "env_step_ms": 26.31670250033494,
   "iterations_per_run": 976,
   "total_steps_per_run": 1000000,
   "calibration": null,
@@ -31,12 +31,54 @@
         "configs/model/connectome.yaml"
       ],
       "overrides": [],
-      "forward_ms": 12.4265599996,
+      "forward_ms": 13.8594900025,
       "micro_batch": 256,
-      "update_ms": 106.2717000023,
+      "update_ms": 107.0090000285,
       "peak_mem_mb": 1571.2841796875,
       "params": 2538887,
-      "est_hours_per_run": 1.7136147675
+      "est_hours_per_run": 1.8583844226
+    },
+    {
+      "exp": "rewired",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/rewired.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 12.5960299978,
+      "micro_batch": 256,
+      "update_ms": 103.0620000092,
+      "peak_mem_mb": 1571.2841796875,
+      "params": 2538887,
+      "est_hours_per_run": 1.7974183438
+    },
+    {
+      "exp": "random",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/random.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 12.289280002,
+      "micro_batch": 256,
+      "update_ms": 106.1137000215,
+      "peak_mem_mb": 1571.2841796875,
+      "params": 2538887,
+      "est_hours_per_run": 1.8000110338
+    },
+    {
+      "exp": "block",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/block.yaml"
+      ],
+      "overrides": [],
+      "forward_ms": 11.8447649991,
+      "micro_batch": 256,
+      "update_ms": 103.8486000034,
+      "peak_mem_mb": 1571.2841796875,
+      "params": 2538887,
+      "est_hours_per_run": 1.7747598748
     },
     {
       "exp": "mlp_matched",
@@ -44,12 +86,12 @@
         "configs/model/mlp_matched.yaml"
       ],
       "overrides": [],
-      "forward_ms": 3.3121999993,
+      "forward_ms": 3.8778150047,
       "micro_batch": 256,
-      "update_ms": 10.6793500017,
+      "update_ms": 10.7677000342,
       "peak_mem_mb": 123.265625,
       "params": 2537302,
-      "est_hours_per_run": 0.9826678498
+      "est_hours_per_run": 1.0945247463
     },
     {
       "exp": "nocore",
@@ -57,12 +99,106 @@
         "configs/model/nocore.yaml"
       ],
       "overrides": [],
-      "forward_ms": 3.0831150012,
+      "forward_ms": 3.0910799978,
       "micro_batch": 256,
-      "update_ms": 11.6599000175,
+      "update_ms": 8.5916499957,
       "peak_mem_mb": 124.1025390625,
       "params": 2727750,
-      "est_hours_per_run": 0.9789714994
+      "est_hours_per_run": 1.0577840717
+    },
+    {
+      "exp": "connectome_T4",
+      "model": [
+        "configs/model/connectome.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=4"
+      ],
+      "forward_ms": 8.5077149968,
+      "micro_batch": 256,
+      "update_ms": 58.0053500016,
+      "peak_mem_mb": 947.2744140625,
+      "params": 2538887,
+      "est_hours_per_run": 1.460098993
+    },
+    {
+      "exp": "connectome_T12",
+      "model": [
+        "configs/model/connectome.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=12"
+      ],
+      "forward_ms": 15.4557349975,
+      "micro_batch": 256,
+      "update_ms": 152.5295500178,
+      "peak_mem_mb": 2195.2939453125,
+      "params": 2538887,
+      "est_hours_per_run": 2.1112357013
+    },
+    {
+      "exp": "rewired_T4",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/rewired.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=4"
+      ],
+      "forward_ms": 9.5391699986,
+      "micro_batch": 256,
+      "update_ms": 59.5196500071,
+      "peak_mem_mb": 947.2744140625,
+      "params": 2538887,
+      "est_hours_per_run": 1.5024614706
+    },
+    {
+      "exp": "rewired_T12",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/rewired.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=12"
+      ],
+      "forward_ms": 17.4614400021,
+      "micro_batch": 256,
+      "update_ms": 152.3714999785,
+      "peak_mem_mb": 2195.2939453125,
+      "params": 2538887,
+      "est_hours_per_run": 2.1801525362
+    },
+    {
+      "exp": "random_T4",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/random.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=4"
+      ],
+      "forward_ms": 8.9044550026,
+      "micro_batch": 256,
+      "update_ms": 60.6425500009,
+      "peak_mem_mb": 947.2744140625,
+      "params": 2538887,
+      "est_hours_per_run": 1.4853063404
+    },
+    {
+      "exp": "random_T12",
+      "model": [
+        "configs/model/connectome.yaml",
+        "configs/variant/random.yaml"
+      ],
+      "overrides": [
+        "model.core.steps=12"
+      ],
+      "forward_ms": 16.8483000016,
+      "micro_batch": 256,
+      "update_ms": 154.3295999872,
+      "peak_mem_mb": 2195.2939453125,
+      "params": 2538887,
+      "est_hours_per_run": 2.1673690183
     }
   ]
 }
