@@ -13,13 +13,12 @@ from __future__ import annotations
 import argparse
 
 import torch
-from omegaconf import OmegaConf
 
 from connectome_driver.data.graphs import build_graph
 from connectome_driver.envs.car_racing import make_vector_env, observation_shape
 from connectome_driver.models.policy import build_policy, needs_graph
 from connectome_driver.rl.ppo import PPO
-from connectome_driver.utils.config import load_config
+from connectome_driver.utils.config import compose_config
 from connectome_driver.utils.logging import RunLogger
 from connectome_driver.utils.seeding import seed_everything
 
@@ -31,10 +30,7 @@ def main() -> None:
     parser.add_argument("overrides", nargs="*")
     args = parser.parse_args()
 
-    cfg = load_config(args.config)
-    for path in args.model:
-        cfg.model = OmegaConf.merge(cfg.model, OmegaConf.load(path))
-    cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(args.overrides))
+    cfg = compose_config(args.config, args.model, args.overrides)
 
     seed_everything(cfg.seed)
     device = torch.device(cfg.device if torch.cuda.is_available() else "cpu")

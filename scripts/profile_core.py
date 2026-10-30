@@ -19,8 +19,12 @@ card's memory. On Windows the driver otherwise spills to system RAM instead of f
 slowdowns that look like valid measurements), and a cuSPARSE allocation failure leaves the CUDA
 context unusable for the rest of the process.
 
+With ``--plan``, it profiles the entries of an experiment plan instead, each configured exactly
+as in training (used for the cost columns of the results table).
+
 Usage:
     python scripts/profile_core.py [--calibrate runs/mlp_baseline/seed1] [--quick]
+    python scripts/profile_core.py --plan configs/experiments/main.yaml --out results/profile_main.json
 """
 
 from __future__ import annotations
@@ -40,8 +44,9 @@ from omegaconf import OmegaConf
 
 from connectome_driver.data.graphs import build_graph
 from connectome_driver.envs.car_racing import make_vector_env, observation_shape
-from connectome_driver.models.policy import build_policy
-from connectome_driver.utils.config import load_config
+from connectome_driver.models.policy import build_policy, needs_graph
+from connectome_driver.utils.config import compose_config, load_config
+from connectome_driver.utils.plan import load_plan
 
 MICRO_BATCHES = (256, 128, 64, 32, 16)
 MEMORY_FRACTION = 0.9  # leave room for cuSPARSE workspaces, which bypass the allocator
@@ -108,6 +113,11 @@ GRAPHS = {"k3": 3, "k4": 4, "full": None}
 def profile_one(config: str, spec: dict) -> dict:
     """Profile a single configuration (runs inside a subprocess)."""
     torch.cuda.set_per_process_memory_fraction(MEMORY_FRACTION)
+    micro = [m for m in MICRO_BATCHES if m <= spec.get("max_micro", MICRO_BATCHES[0])]
+    if "model" in spec:  # an entry of an experiment plan, configured exactly as in training
+        cfg = compose_config(config, spec["model"], spec["overrides"])
+        graph = build_graph(cfg.model.graph, seed=1) if needs_graph(cfg.model) else None
+        return profile(cfg, graph, observation_shape(cfg.env), torch.device("cuda"), micro)
     base = load_config(config)
     graph = build_graph(OmegaConf.merge(base.model.graph, {"subgraph_k": GRAPHS[spec["graph"]]}))
     if spec["core"] == "mlp":
@@ -116,7 +126,6 @@ def profile_one(config: str, spec: dict) -> dict:
         core = {"type": "graph", "steps": spec["T"], "signed": True, "dtype": spec["dtype"],
                 "checkpoint": spec["checkpoint"]}
         cfg = OmegaConf.merge(base, {"model": {"core": core}})
-    micro = [m for m in MICRO_BATCHES if m <= spec.get("max_micro", MICRO_BATCHES[0])]
     return profile(cfg, graph, observation_shape(base.env), torch.device("cuda"), micro)
 
 
@@ -143,9 +152,14 @@ def main() -> None:
     parser.add_argument("--config", default="configs/train.yaml")
     parser.add_argument("--calibrate", type=Path, default=None, help="run dir of a finished MLP run")
     parser.add_argument("--quick", action="store_true", help="fewer configurations")
+    parser.add_argument("--plan", type=Path, default=None,
+                        help="profile the entries of an experiment plan instead of the core sweep")
+    parser.add_argument("--only", nargs="*", default=None, help="plan entries to profile")
     parser.add_argument("--out", type=Path, default=Path("results/profile_core.json"))
     parser.add_argument("--one", default=None, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.plan is not None and args.calibrate is not None:
+        parser.error("--calibrate needs the core sweep (it uses its full-brain MLP row)")
 
     if args.one is not None:
         print("ROW " + json.dumps(profile_one(args.config, json.loads(args.one))), flush=True)
@@ -158,11 +172,15 @@ def main() -> None:
     steps = (4, 8) if args.quick else (4, 8, 12)
     specs = {name: build_graph(OmegaConf.merge(base.model.graph, {"subgraph_k": k}))
              for name, k in GRAPHS.items()}
-    jobs = [{"core": "mlp", "graph": name} for name in GRAPHS]
-    jobs += [
-        {"core": "graph", "graph": name, "T": T, "dtype": dtype, "checkpoint": ckpt}
-        for name, T, dtype, ckpt in itertools.product(GRAPHS, steps, ("float32", "bfloat16"), (False, True))
-    ]
+    if args.plan is not None:
+        entries = {r.exp_name: r for r in load_plan(args.plan) if args.only is None or r.exp_name in args.only}
+        jobs = [{"exp": name, "model": r.model, "overrides": r.overrides} for name, r in entries.items()]
+    else:
+        jobs = [{"core": "mlp", "graph": name} for name in GRAPHS]
+        jobs += [
+            {"core": "graph", "graph": name, "T": T, "dtype": dtype, "checkpoint": ckpt}
+            for name, T, dtype, ckpt in itertools.product(GRAPHS, steps, ("float32", "bfloat16"), (False, True))
+        ]
     rows = []
     for job in jobs:
         rows.append(run_isolated(args.config, job))
