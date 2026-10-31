@@ -1,0 +1,8 @@
+{
+  "run": "runs/connectome/seed2",
+  "track_seed": 10015,
+  "return": 862.7118644067666,
+  "eval_median": 830.2691163151649,
+  "policy": "sampled",
+  "frames": 1002
+}
