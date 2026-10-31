@@ -11,6 +11,7 @@ Each ``--model`` file is merged into the ``model`` section, in order.
 from __future__ import annotations
 
 import argparse
+import json
 
 import torch
 
@@ -20,6 +21,7 @@ from connectome_driver.models.policy import build_policy, needs_graph
 from connectome_driver.rl.ppo import PPO
 from connectome_driver.utils.config import compose_config
 from connectome_driver.utils.logging import RunLogger
+from connectome_driver.utils.runtime import configure_runtime
 from connectome_driver.utils.seeding import seed_everything
 
 
@@ -31,6 +33,7 @@ def main() -> None:
     args = parser.parse_args()
 
     cfg = compose_config(args.config, args.model, args.overrides)
+    runtime = configure_runtime(cfg)
 
     seed_everything(cfg.seed)
     device = torch.device(cfg.device if torch.cuda.is_available() else "cpu")
@@ -39,7 +42,9 @@ def main() -> None:
     policy = build_policy(cfg.model, observation_shape(cfg.env), envs.single_action_space.n, graph)
     policy = policy.to(device)
 
-    logger = RunLogger(cfg)
+    logger = RunLogger(cfg, print_every=cfg.log.get("print_every", 10))
+    if runtime:
+        (logger.dir / "runtime.json").write_text(json.dumps(runtime, indent=2))
     counts = policy.parameter_counts()
     print(f"run dir: {logger.dir}\nparameters: {counts} total {sum(counts.values()):,}")
     if graph is not None:

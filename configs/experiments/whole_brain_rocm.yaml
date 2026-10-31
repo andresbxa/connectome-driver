@@ -1,0 +1,14 @@
+# Same whole-brain experiment, with an explicit Windows ROCm execution backend.
+# Set CONNECTOME_TUNABLEOP_CACHE to a locally tuned, validated cache (see docs/rocm.md).
+# Micro-batching changes memory use and reduction rounding, not the PPO minibatch size.
+common:
+  - model.graph.subgraph_k=null
+  - model.core.steps=4
+  - ppo.micro_batch_size=8
+  - model.core.sparse_backend=rocm_row
+  - runtime.tunableop_cache=${oc.env:CONNECTOME_TUNABLEOP_CACHE}
+
+runs:
+  connectome_full_T4: {model: [configs/model/connectome.yaml], seeds: [1, 2]}
+  rewired_full_T4: {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], seeds: [1, 2]}
+  random_full_T4: {model: [configs/model/connectome.yaml, configs/variant/random.yaml], seeds: [1, 2]}

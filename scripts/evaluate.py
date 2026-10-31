@@ -20,6 +20,7 @@ from omegaconf import OmegaConf
 from connectome_driver.data.graphs import build_graph
 from connectome_driver.envs.car_racing import make_env, observation_shape
 from connectome_driver.models.policy import build_policy, needs_graph
+from connectome_driver.utils.runtime import configure_runtime
 
 EVAL_SEED_OFFSET = 10_000
 
@@ -32,6 +33,7 @@ def main() -> None:
     args = parser.parse_args()
 
     cfg = OmegaConf.load(args.run_dir / "config.yaml")
+    runtime = configure_runtime(cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     env = make_env(cfg.env)
     # Rebuilds the same graph as in training (null models are sampled with the run's seed).
@@ -65,6 +67,9 @@ def main() -> None:
     }
     name = "eval_greedy.json" if args.greedy else "eval.json"
     (args.run_dir / name).write_text(json.dumps(result, indent=2))
+    if runtime:
+        runtime_name = "eval_greedy_runtime.json" if args.greedy else "eval_runtime.json"
+        (args.run_dir / runtime_name).write_text(json.dumps(runtime, indent=2))
     print(f"\nmean {result['mean']:.1f} +- {result['std']:.1f}  ({result['policy']}, {args.episodes} episodes)")
 
 
