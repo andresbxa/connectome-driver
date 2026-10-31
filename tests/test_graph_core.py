@@ -88,6 +88,16 @@ def test_checkpointing_does_not_change_results(toy_spec):
     torch.testing.assert_close(grads[0], grads[1])
 
 
+def test_sparse_backend_preserves_model_state_and_parameters(toy_spec):
+    spec = toy_spec(None)
+    ordinary = make_core(spec, steps=4)
+    optimized = make_core(spec, steps=4, sparse_backend="rocm_row")
+    assert ordinary.state_dict().keys() == optimized.state_dict().keys()
+    for name, value in ordinary.state_dict().items():
+        torch.testing.assert_close(value, optimized.state_dict()[name], rtol=0, atol=0)
+    assert sum(p.numel() for p in ordinary.parameters()) == sum(p.numel() for p in optimized.parameters())
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="bf16 sparse products need CUDA")
 def test_bfloat16_core_runs_and_returns_float32(toy_spec):
     core = make_core(toy_spec(None), steps=3, dtype="bfloat16").cuda()

@@ -83,8 +83,13 @@ class GraphCore(nn.Module):
         leak_init: float = 0.9,
         dtype: str = "float32",
         checkpoint_steps: bool = False,
+        sparse_backend: str = "torch",
     ):
         super().__init__()
+        if sparse_backend not in ("torch", "rocm_row"):
+            raise ValueError(f"unknown sparse backend {sparse_backend!r}")
+        self.sparse_backend = sparse_backend
+        self._rocm_matmul = None
         self.num_nodes, self.node_dim, self.steps = num_nodes, node_dim, steps
         self.compute_dtype = getattr(torch, dtype)
         self.checkpoint_steps = checkpoint_steps
@@ -111,6 +116,9 @@ class GraphCore(nn.Module):
         self.leak = nn.Parameter(torch.tensor(math.log(leak_init / (1 - leak_init))))
 
     def _apply(self, fn, recurse=True):
+        if self._rocm_matmul is not None:
+            self._rocm_matmul.close()
+            self._rocm_matmul = None
         super()._apply(fn, recurse)
         # Follow device moves only; the sparse matrices keep the compute dtype.
         self.a = fn(self.a).to(self.compute_dtype)
@@ -119,7 +127,15 @@ class GraphCore(nn.Module):
 
     def _step(self, h: torch.Tensor, drive: torch.Tensor) -> torch.Tensor:
         n, b, d = h.shape
-        m = sparse_matmul(self.a, self.a_t, h.reshape(n, b * d)).view(n, b, d)
+        if self.sparse_backend == "rocm_row":
+            if self._rocm_matmul is None:
+                from connectome_driver.models.cores.rocm_sparse import RocmSparseMatmul
+
+                self._rocm_matmul = RocmSparseMatmul()
+            product = self._rocm_matmul(self.a, self.a_t, h.reshape(n, b * d))
+        else:
+            product = sparse_matmul(self.a, self.a_t, h.reshape(n, b * d))
+        m = product.view(n, b, d)
         dt = self.compute_dtype
         u = m @ self.w_msg.to(dt) + h @ self.w_self.to(dt) + self.bias.to(dt)[:, None, :]
         u = u.index_add(0, self.input_index, drive)
