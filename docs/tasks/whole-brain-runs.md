@@ -1,6 +1,9 @@
 # Task: whole-brain runs on the second GPU (Phase 5)
 
 **Owner:** Joshue · **Depends on:** `main` with the null models merged (`phase-4-nulls`)
+**Status:** sections 1-3 done (email in PR #9, null review and fix in PR #8). The plan is split
+by seed: Andrés runs seed 1 of the four graphs on the RTX 3070 Ti, you run seed 2 on the
+RX 7600 with the ROCm backend (section 4).
 **Out of scope:** changing code, configs or hyperparameters; if something looks wrong, open an
 issue or comment on the PR instead, so every run of the experiment uses the same setup.
 
@@ -15,7 +18,10 @@ One thing to keep in mind when reading them. On the subgraph, rewiring puts most
 neurons one hop away from the photoreceptors (823 of 1,014 in the rewired graph, 2 in the real
 one), because high out-degree photoreceptors get wired straight to high in-degree descending
 neurons. A null can therefore differ from the connectome just because the visual signal arrives
-sooner. `results/null_stats.json` has the same numbers for the full brain.
+sooner. `results/null_stats.json` has the same numbers for the full brain: within 2 hops of the
+photoreceptors are 12% of the descending neurons in the connectome, 98% in the rewired graph,
+100% in the random one and 62% in the block null. The block null keeps the most of the real
+path structure, which is why it is in the plan even though it adds two runs.
 
 ## 1. Setup
 
@@ -58,38 +64,51 @@ welcome: the whole comparison depends on the nulls keeping what they claim to ke
 specification they follow is [`null-models.md`](null-models.md). Leave comments on the PR or in
 an issue.
 
-## 4. Run the whole-brain plan
+## 4. Run seed 2 of the whole-brain plan
 
-`configs/experiments/whole_brain.yaml`: connectome / rewired / random at T = 4, 2 seeds each
-(6 runs, ~4.8 h each on an 8 GB RTX 3070 Ti Laptop; slower or faster on your card).
+The plan has connectome / rewired / random / block at T = 4, 2 seeds each (8 runs).
+Splitting by seed keeps each seed's four graphs on one machine and one backend, so the
+hardware difference falls equally on every graph instead of being confused with one of them.
+Your part is seed 2: four runs of `configs/experiments/whole_brain_rocm.yaml`, about 12 h each
+on the RX 7600 (~2 days in total). Andrés's seed 1 runs with `whole_brain.yaml` (same
+configuration, PyTorch backend, micro-batches of 128).
 
-1. **Check that it fits.** Send the output of `nvidia-smi`. With less than 8 GB, change
-   `ppo.micro_batch_size=128` to `64` in the plan's `common` line (the update is identical,
-   only slower). On Windows a run that does not fit does not crash: the driver silently
-   spills to system RAM and training becomes several times slower, so check the `sps` column
-   of the first log lines.
-2. **Keep the machine awake and plugged in.** The runner asks Windows not to idle-sleep, but
-   closing the lid or running on battery still suspends or throttles it (a sleeping laptop
-   froze our first overnight sweep for 8 hours).
+1. **Validate the block null first.** Your validation in `results/rocm_validation.json` covers
+   connectome, rewired and random; run the same output and gradient check for `block` with
+   seeds 1 and 2 (see [`docs/rocm.md`](../rocm.md)) and add it to that file.
+2. **Use the performance power mode and keep the machine plugged in, lid open.** The runner
+   asks Windows not to idle-sleep, but cannot stop a suspend. A quiet or "Silent" power mode
+   slowed our first whole-brain run 2.3x (GPU at 210 MHz); check that the `sps` of the first
+   log lines matches your validation (~23 steps/s).
 3. **Run it**, one run at a time (a full-brain run uses most of the GPU):
 
-   ```bash
-   python scripts/run_experiments.py configs/experiments/whole_brain.yaml --status
-   python scripts/run_experiments.py configs/experiments/whole_brain.yaml
+   ```powershell
+   $env:CONNECTOME_TUNABLEOP_CACHE = (Resolve-Path .venv/rocm-gemm.csv).Path
+   python scripts/run_experiments.py configs/experiments/whole_brain_rocm.yaml --seeds 2 --status
+   python scripts/run_experiments.py configs/experiments/whole_brain_rocm.yaml --seeds 2
    ```
 
    Finished runs are skipped, so after an interruption run the same command again. A run
-   that was cut halfway starts again from zero (there is no mid-run resume). Each run
-   trains for 1M steps and then evaluates on 20 unseen tracks.
-4. **Send back** each `runs/<name>/seed<k>/` folder (`config.yaml`, `episodes.csv`,
-   `iterations.csv`, `eval.json`, `DONE`, `policy.pt`) and the `seed<k>.log` files, e.g. as a
-   zip. Do not commit `runs/`. Wall-clock times from your machine are not used as a cost
-   metric (all timings come from one machine), but say which GPU you used.
+   that was cut halfway starts again from zero (there is no mid-run resume), so if you need
+   the machine, stop right after a run finishes. Each run trains for 1M steps and then
+   evaluates on 20 unseen tracks.
+4. **Send back** each `runs/<name>/seed2/` folder (`config.yaml`, `runtime.json`,
+   `episodes.csv`, `iterations.csv`, `eval.json`, `eval_runtime.json`, `DONE`, `policy.pt`) and
+   the `seed2.log` files, e.g. as a zip. Do not commit `runs/`. Wall-clock times from your
+   machine are not used as a cost metric (all timings come from one machine).
+
+**What a failed run looks like.** Some seeds learn to drive off the map: the reward clip
+turns its -100 penalty into -1, which can beat a slow lap. Episodes then last ~230-350 frames
+instead of 1,000 and the return stays near -40. It happened to the connectome at T = 4 with
+seed 1 on the subgraph, and the whole-brain connectome run with seed 1 looked the same after
+120k steps. Do not stop or restart such a run: a
+collapse is part of the result and every graph gets the same treatment.
 
 ## Done when
 
-- your email is in `pyproject.toml` and `CITATION.cff` (merged PR);
-- the 6 runs of `whole_brain.yaml` show `done` in `--status` and their folders are shared.
+- the block null passes the ROCm check for seeds 1 and 2;
+- the 4 seed-2 runs of `whole_brain_rocm.yaml` show `done` in `--status` and their folders
+  are shared.
 
 ## Conventions
 

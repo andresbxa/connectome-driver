@@ -58,5 +58,6 @@ def build_core(
             leak_init=cfg.get("leak_init", 0.9),
             dtype=cfg.dtype,
             checkpoint_steps=cfg.checkpoint,
+            sparse_backend=cfg.get("sparse_backend", "torch"),
         )
     raise ValueError(f"unknown core type {cfg.type!r}")

@@ -1,0 +1,199 @@
+{
+  "purpose": "Local backend validation and short execution benchmark, not completed learning results",
+  "date": "2026-10-31",
+  "gpu": "AMD Radeon RX 7600",
+  "torch": "2.14.0+rocm10.1.0",
+  "hip": "7.16.26385",
+  "graph": {
+    "nodes": 139255,
+    "edges": 3732460,
+    "T": 4,
+    "node_dim": 8,
+    "dtype": "bfloat16",
+    "parameters": 4641879
+  },
+  "tests": "62 passed, 1 skipped, 1 deselected in 17.41s",
+  "numerical_acceptance": {
+    "per_parameter_relative_l2": 0.02,
+    "or_max_abs": 1e-06,
+    "output_max_abs": 0.01
+  },
+  "all_graph_seed_checks_passed": true,
+  "graph_seed_cases": [
+    {
+      "variant": "connectome",
+      "seed": 1,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 388.6707999990904,
+        "rocm_row": 79.71220000035828
+      },
+      "output_max_abs": 0.0,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.000438796207509477
+    },
+    {
+      "variant": "connectome",
+      "seed": 1,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 373.8888000007137,
+        "rocm_row": 76.9192000007024
+      },
+      "output_max_abs": 7.849931716918945e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0017584176375164723
+    },
+    {
+      "variant": "rewired",
+      "seed": 1,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 386.448899997049,
+        "rocm_row": 78.19100000051549
+      },
+      "output_max_abs": 2.1688640117645264e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0017824626625453084
+    },
+    {
+      "variant": "rewired",
+      "seed": 1,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 374.1481999968528,
+        "rocm_row": 78.19069999823114
+      },
+      "output_max_abs": 2.168118953704834e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0019191445420327386
+    },
+    {
+      "variant": "random",
+      "seed": 1,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 387.44889999361476,
+        "rocm_row": 66.65010000142502
+      },
+      "output_max_abs": 3.36766242980957e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.002046861355632401
+    },
+    {
+      "variant": "random",
+      "seed": 1,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 376.94570000167005,
+        "rocm_row": 65.66960000054678
+      },
+      "output_max_abs": 3.102421760559082e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0023422827269704402
+    },
+    {
+      "variant": "connectome",
+      "seed": 2,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 382.2874000034062,
+        "rocm_row": 78.4644000013941
+      },
+      "output_max_abs": 1.601874828338623e-07,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0023174454740418214
+    },
+    {
+      "variant": "connectome",
+      "seed": 2,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 373.67860000085784,
+        "rocm_row": 76.73639999848092
+      },
+      "output_max_abs": 5.431473255157471e-06,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0020374283064439357
+    },
+    {
+      "variant": "rewired",
+      "seed": 2,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 385.42020000022603,
+        "rocm_row": 77.6488000046811
+      },
+      "output_max_abs": 8.106231689453125e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0036347838948722127
+    },
+    {
+      "variant": "rewired",
+      "seed": 2,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 375.72880000516307,
+        "rocm_row": 76.33189999614842
+      },
+      "output_max_abs": 3.914162516593933e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0023217139779815313
+    },
+    {
+      "variant": "random",
+      "seed": 2,
+      "bias_state": "initial",
+      "timings_ms": {
+        "torch": 388.1360000013956,
+        "rocm_row": 65.2327999996487
+      },
+      "output_max_abs": 0.0,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.0016223039624037878
+    },
+    {
+      "variant": "random",
+      "seed": 2,
+      "bias_state": "nonzero",
+      "timings_ms": {
+        "torch": 377.6657999987947,
+        "rocm_row": 63.923300003807526
+      },
+      "output_max_abs": 1.3753771781921387e-05,
+      "deterministic_repeated_output": true,
+      "passed": true,
+      "max_parameter_relative_l2": 0.002511053593376818
+    }
+  ],
+  "ppo_smoke": {
+    "agent_steps": 2048,
+    "iterations": 2,
+    "micro_batch": 8,
+    "minibatch": 256,
+    "num_envs": 8,
+    "rollout_steps": 128,
+    "update_epochs": 4,
+    "second_iteration_seconds": 45.19079456031625,
+    "second_iteration_steps_per_second": 22.65948209061173,
+    "extrapolated_training_hours": 12.251726525241294,
+    "checkpoint_reload_and_one_episode_evaluation": "passed"
+  },
+  "limitations": [
+    "Only one post-warmup PPO iteration informs the time extrapolation; initialization and final evaluation are excluded.",
+    "Null graphs were numerically profiled for both seeds, not trained for 1M steps in this validation.",
+    "Floating-point results are close, not bitwise identical across backends; long-run learning equivalence is unmeasured.",
+    "These local timings are not the reference-machine cost metric used for the main scientific comparison."
+  ]
+}

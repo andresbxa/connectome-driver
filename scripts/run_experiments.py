@@ -66,9 +66,10 @@ def main() -> None:
     parser.add_argument("--parallel", type=int, default=1, help="runs at the same time")
     parser.add_argument("--episodes", type=int, default=20, help="evaluation episodes per run")
     parser.add_argument("--status", action="store_true", help="only print the state of each run")
+    parser.add_argument("--run-dir", type=Path, default=None, help="override the output root")
     args = parser.parse_args()
 
-    run_dir = Path(load_config("configs/train.yaml").run_dir)
+    run_dir = args.run_dir if args.run_dir is not None else Path(load_config("configs/train.yaml").run_dir)
     runs = [
         r for r in load_plan(args.plan)
         if (args.only is None or r.exp_name in args.only) and (args.seeds is None or r.seed in args.seeds)

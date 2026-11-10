@@ -47,6 +47,7 @@ from connectome_driver.envs.car_racing import make_vector_env, observation_shape
 from connectome_driver.models.policy import build_policy, needs_graph
 from connectome_driver.utils.config import compose_config, load_config
 from connectome_driver.utils.plan import load_plan
+from connectome_driver.utils.runtime import configure_runtime
 
 MICRO_BATCHES = (256, 128, 64, 32, 16)
 MEMORY_FRACTION = 0.9  # leave room for cuSPARSE workspaces, which bypass the allocator
@@ -116,6 +117,7 @@ def profile_one(config: str, spec: dict) -> dict:
     micro = [m for m in MICRO_BATCHES if m <= spec.get("max_micro", MICRO_BATCHES[0])]
     if "model" in spec:  # an entry of an experiment plan, configured exactly as in training
         cfg = compose_config(config, spec["model"], spec["overrides"])
+        configure_runtime(cfg)
         graph = build_graph(cfg.model.graph, seed=1) if needs_graph(cfg.model) else None
         return profile(cfg, graph, observation_shape(cfg.env), torch.device("cuda"), micro)
     base = load_config(config)
