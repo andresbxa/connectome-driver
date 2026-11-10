@@ -1,0 +1,36 @@
+{
+  "plan": "configs/experiments/whole_brain.yaml",
+  "thresholds": [
+    500,
+    700,
+    800
+  ],
+  "reference": "connectome_full_T4",
+  "variants": {
+    "connectome_full_T4": {
+      "seeds": [
+        1
+      ],
+      "eval_per_seed": [
+        765.0877635199402
+      ],
+      "eval_mean": 765.0877635199402,
+      "eval_sd": null,
+      "final_train_return": 762.2433498759304,
+      "steps_to": {
+        "500": [
+          279816
+        ],
+        "700": [
+          292056
+        ],
+        "800": [
+          312056
+        ]
+      }
+    }
+  },
+  "comparison": {},
+  "depth_sweep": {},
+  "cost": {}
+}

@@ -100,9 +100,10 @@ configuration, PyTorch backend, micro-batches of 128).
 **What a failed run looks like.** Some seeds learn to drive off the map: the reward clip
 turns its -100 penalty into -1, which can beat a slow lap. Episodes then last ~230-350 frames
 instead of 1,000 and the return stays near -40. It happened to the connectome at T = 4 with
-seed 1 on the subgraph, and the whole-brain connectome run with seed 1 looked the same after
-120k steps. Do not stop or restart such a run: a
-collapse is part of the result and every graph gets the same treatment.
+seed 1 on the subgraph. The whole-brain connectome run with seed 1 did the same for its first
+250k steps, then learned to drive within 50k steps and ended at 765 on the evaluation tracks
+(`results/whole_brain_results.md`). Do not stop or restart such a run: a collapse can end on
+its own, it is part of the result either way, and every graph gets the same treatment.
 
 ## Done when
 
