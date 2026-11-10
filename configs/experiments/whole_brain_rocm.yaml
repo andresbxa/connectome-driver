@@ -12,3 +12,4 @@ runs:
   connectome_full_T4: {model: [configs/model/connectome.yaml], seeds: [1, 2]}
   rewired_full_T4: {model: [configs/model/connectome.yaml, configs/variant/rewired.yaml], seeds: [1, 2]}
   random_full_T4: {model: [configs/model/connectome.yaml, configs/variant/random.yaml], seeds: [1, 2]}
+  block_full_T4: {model: [configs/model/connectome.yaml, configs/variant/block.yaml], seeds: [1, 2]}

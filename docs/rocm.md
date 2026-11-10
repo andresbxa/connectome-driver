@@ -53,8 +53,9 @@ Once validated:
 python scripts/run_experiments.py configs/experiments/whole_brain_rocm.yaml
 ```
 
-This plan retains the original six graph/seed pairs and uses micro-batches of 8 inside
-the original 256-sample PPO minibatch. The normal `whole_brain.yaml` plan is unchanged.
+This plan has the same eight graph/seed pairs as `whole_brain.yaml` (connectome, rewired,
+random and block, 2 seeds each) and uses micro-batches of 8 inside the original 256-sample
+PPO minibatch. The normal `whole_brain.yaml` plan is unchanged.
 Choose a fresh output location or preserve old partial runs before restarting; the
 runner cannot resume an interrupted optimizer/RNG state.
 
@@ -79,3 +80,6 @@ check including checkpoint reload and one evaluation episode. The post-warmup it
 ran at about 22.7 agent steps/s, suggesting about 12.3 training hours per million steps
 on the measured RX 7600 setup. This is a short-run extrapolation, not a completed
 training result or a guarantee of equal learning curves.
+
+The block null (`block_full_T4`, seeds 1 and 2) was added to the plan after this validation
+and still needs the same output and gradient check before its runs start.

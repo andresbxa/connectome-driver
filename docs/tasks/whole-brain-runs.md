@@ -15,7 +15,10 @@ One thing to keep in mind when reading them. On the subgraph, rewiring puts most
 neurons one hop away from the photoreceptors (823 of 1,014 in the rewired graph, 2 in the real
 one), because high out-degree photoreceptors get wired straight to high in-degree descending
 neurons. A null can therefore differ from the connectome just because the visual signal arrives
-sooner. `results/null_stats.json` has the same numbers for the full brain.
+sooner. `results/null_stats.json` has the same numbers for the full brain: within 2 hops of the
+photoreceptors are 12% of the descending neurons in the connectome, 98% in the rewired graph,
+100% in the random one and 62% in the block null. The block null keeps the most of the real
+path structure, which is why it is in the plan even though it adds two runs.
 
 ## 1. Setup
 
@@ -60,8 +63,11 @@ an issue.
 
 ## 4. Run the whole-brain plan
 
-`configs/experiments/whole_brain.yaml`: connectome / rewired / random at T = 4, 2 seeds each
-(6 runs, ~4.8 h each on an 8 GB RTX 3070 Ti Laptop; slower or faster on your card).
+`configs/experiments/whole_brain.yaml`: connectome / rewired / random / block at T = 4, 2 seeds
+each (8 runs, ~4.8 h each on an 8 GB RTX 3070 Ti Laptop; slower or faster on your card). On an
+AMD card use `whole_brain_rocm.yaml` instead, after the validation in [`docs/rocm.md`](../rocm.md)
+(~12 h per run on an RX 7600). The runner goes seed by seed, so after the first four runs every
+graph already has one seed.
 
 1. **Check that it fits.** Send the output of `nvidia-smi`. With less than 8 GB, change
    `ppo.micro_batch_size=128` to `64` in the plan's `common` line (the update is identical,
@@ -89,7 +95,7 @@ an issue.
 ## Done when
 
 - your email is in `pyproject.toml` and `CITATION.cff` (merged PR);
-- the 6 runs of `whole_brain.yaml` show `done` in `--status` and their folders are shared.
+- the 8 runs of the plan show `done` in `--status` and their folders are shared.
 
 ## Conventions
 
